@@ -5,7 +5,7 @@ Largely inspired and adapted from [Figure 53's F53OSC Library](https://github.co
 
 Added features include:
  * takeBundle() - OSCPacketDestinations are notified when an OSC bundle is received as well as individual OSC messages with takeMessage()
- * Multicasting - Server can join multicast group.
+ * Multicasting - Servers can join & leave multicast groups.
  * OSC 1.0 & 1.1 Stream Framing.
 
 For convenience, we've included a few public domain source files:
