@@ -145,13 +145,6 @@
 			path = OSCKit;
 			sourceTree = "<group>";
 		};
-		A57968EC1FA5D99400D9B9EE /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		A58C37751F2926B600F67119 = {
 			isa = PBXGroup;
 			children = (
@@ -159,7 +152,6 @@
 				A57968D61FA5D81700D9B9EE /* OSCKit */,
 				A5227D2A1FA60C23002652EC /* Demo */,
 				A58C37801F2926B600F67119 /* Products */,
-				A57968EC1FA5D99400D9B9EE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
