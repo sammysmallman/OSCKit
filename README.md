@@ -6,7 +6,7 @@ Largely inspired and adapted from [Figure 53](http://figure53.com) OSC library [
 For convenience, we've included a few public domain source files:
 
 [CocoaAsyncSocket](https://github.com/robbiehanson/CocoaAsyncSocket).  
-[Swift-Netutils] (https://github.com/svdo/swift-netutils).
+[Swift-Netutils](https://github.com/svdo/swift-netutils).
 
 Thanks and curiosity should rightfully be directed to towards them.
 
