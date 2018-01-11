@@ -4,7 +4,7 @@ A Swift framework for sending, receiving, and parsing OSC messages &amp; bundles
 Largely inspired and adapted from [Figure 53's F53OSC Library](https://github.com/Figure53/F53OSC). 
 
 Added features include:
- * takeBundle() - OSCPacketDestinations are notified when an OSC bundle is received so that embedded messages and bundles can be acted upon asynchronously using the bundles timetags.
+ * takeBundle() - OSCPacketDestinations are notified when an OSC bundle is received so that embedded messages and bundles can be acted upon asynchronously using the bundles timetag.
  * Multicasting - Servers can join & leave multicast groups.
  * OSC 1.0 & 1.1 Stream Framing.
 
