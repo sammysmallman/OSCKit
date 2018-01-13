@@ -24,11 +24,13 @@
 //  THE SOFTWARE.
 //
 
-import Cocoa
+import Foundation
+
+// MARK: Parser
 
 public class OSCParser {
     
-    public enum oscTCPVersion {
+    public enum streamFraming {
         case SLIP
         case PLH
     }
@@ -47,9 +49,9 @@ public class OSCParser {
         }
     }
     
-    public func translate(OSCData tcpData: Data, version: oscTCPVersion, to data: NSMutableData, with state: NSMutableDictionary) {
+    public func translate(OSCData tcpData: Data, streamFraming: streamFraming, to data: NSMutableData, with state: NSMutableDictionary) {
         // There are two versions of OSC. OSC 1.1 frames messages using the SLIP protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
-        if version == .SLIP {
+        if streamFraming == .SLIP {
             
         }
     }

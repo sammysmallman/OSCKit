@@ -26,6 +26,8 @@
 
 import Foundation
 
+// MARK: PacketDestination Protocol
+
 public protocol OSCPacketDestination {
     
     func take(message: OSCMessage)

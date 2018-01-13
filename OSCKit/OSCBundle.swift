@@ -26,6 +26,8 @@
 
 import Foundation
 
+// MARK: Bundle
+
 public class OSCBundle: OSCPacket {
     
     public var timeTag: OSCTimeTag = OSCTimeTag()

@@ -54,10 +54,10 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
             self.udpSocket?.port = newValue
         }
     }
-    public var tcpFormat: OSCParser.oscTCPVersion = .SLIP
+    public var streamFraming: OSCParser.streamFraming = .SLIP
     
     private var udpReplyPort: UInt16 = 0
-    var delegate: OSCPacketDestination?
+    public var delegate: OSCPacketDestination?
     
     public override init() {
         super.init()
@@ -152,7 +152,7 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
         guard let newActiveData = self.activeData.object(forKey: NSNumber(integerLiteral: tag)) as? NSMutableData, let newActiveState = self.activeState.object(forKey: NSNumber(integerLiteral: tag)) as? NSMutableDictionary else { return }
 
             print("Read Slip Data")
-            OSCParser().translate(OSCData: data, version: tcpFormat, to: newActiveData, with: newActiveState)
+            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: newActiveData, with: newActiveState)
             sock.readData(withTimeout: -1, tag: tag)
     }
     

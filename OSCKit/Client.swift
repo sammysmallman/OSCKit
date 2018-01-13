@@ -77,7 +77,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
             sock.port = port
         }
     }
-    public var tcpFormat: OSCParser.oscTCPVersion = .SLIP
+    public var streamFraming: OSCParser.streamFraming = .SLIP
     
     public override init() {
         super.init()
@@ -166,7 +166,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         let newActiveState = self.activeState.object(forKey: NSNumber(integerLiteral: tag))
         if (newActiveData != nil) && (newActiveState != nil) {
             print("Read Slip Data")
-            OSCParser().translate(OSCData: data, version: tcpFormat, to: readData, with: readState)
+            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState)
             sock.readData(withTimeout: -1, tag: tag)
         }
     }

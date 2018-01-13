@@ -26,10 +26,12 @@
 
 import Foundation
 
+// MARK: Message
+
 public class OSCMessage: OSCPacket {
     
     public var addressPattern: String = "/"
-    public var addressParts: [String] { // Address pattern are components seperated by "/"
+    public var addressParts: [String] { // Address Parts are components seperated by "/"
         get {
             var parts = self.addressPattern.components(separatedBy: "/")
             parts.removeFirst()
@@ -119,7 +121,6 @@ public class OSCMessage: OSCPacket {
                     debugPrint("Number with unrecognised type: \(argument)")
                     continue
                 }
-                
             }
         }
         return result
@@ -155,7 +156,6 @@ extension Data {
 }
 
 extension NSNumber {
-    
     func oscIntData()->Data {
         var int = Int32(truncating: self).bigEndian
         let buffer = UnsafeBufferPointer(start: &int, count: 1)
