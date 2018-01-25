@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Artifice Industries Ltd. http://artificers.co.uk
+//  Copyright © 2017 Sam Smallman. http://sammy.io
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -86,6 +86,8 @@ public class OSCMessage: OSCPacket {
                     debugPrint("Number with unrecognised type: \(argument)")
                     continue
                 }
+            } else if argument is OSCTimeTag {
+                newTypeTagString.append("t")
             }
             newArguments.append(argument)
         }
@@ -121,6 +123,11 @@ public class OSCMessage: OSCPacket {
                     debugPrint("Number with unrecognised type: \(argument)")
                     continue
                 }
+            } else if argument is OSCTimeTag {
+                guard let timeTag = argument as? OSCTimeTag else {
+                    break
+                }
+                result.append(timeTag.oscTimeTagData())
             }
         }
         return result

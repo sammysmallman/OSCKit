@@ -1,9 +1,9 @@
 //
-//  Server.swift
+//  OSCServer.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Artifice Industries Ltd. http://artificers.co.uk
+//  Copyright © 2017 Sam Smallman. http://sammy.io
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,9 @@
 
 import Foundation
 import CocoaAsyncSocket
+import Cocoa
 
-public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
+public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
     
     private(set) var tcpSocket: Socket!
     private(set) var udpSocket: Socket!
@@ -39,7 +40,6 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
     private var activeState: NSMutableDictionary!       // NSMutableDictionary keyed by index; stores state of incoming data.
     private var activeIndex: Int = 0
     private var joinedMultiCastGroups: [String] = []
-    
     public var interface: String = "localhost" {
         willSet {
             stopListening()
@@ -130,8 +130,8 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
         let key = NSNumber(integerLiteral: self.activeIndex)
         self.activeTCPSockets?.setObject(activeSocket, forKey: key)
         self.activeData?.setObject(NSMutableData(), forKey: key)
-        self.activeState?.setObject(["socket": activeSocket, "dangling_ESC": false], forKey: key)
-        
+        let dictionary: NSMutableDictionary = ["socket": activeSocket, "dangling_ESC": false]
+        self.activeState?.setObject(dictionary, forKey: key)
         newSocket.readData(withTimeout: -1, tag: self.activeIndex)
         
         self.activeIndex += 1
@@ -144,15 +144,15 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
     }
     
     public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+        guard let delegate = self.delegate else { return }
         #if Server_Debug
-            let newData = data as NSData
-            debugPrint("TCP Socket: \(sock) didRead Data of length: \(newData.length), withTag: \(tag)")
+            debugPrint("TCP Socket: \(sock) didRead Data of length: \(data.count), withTag: \(tag)")
         #endif
-        
-        guard let newActiveData = self.activeData.object(forKey: NSNumber(integerLiteral: tag)) as? NSMutableData, let newActiveState = self.activeState.object(forKey: NSNumber(integerLiteral: tag)) as? NSMutableDictionary else { return }
 
-            print("Read Slip Data")
-            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: newActiveData, with: newActiveState)
+        guard let newActiveData = self.activeData.object(forKey: tag) as? NSMutableData, let newActiveState = self.activeState.object(forKey: tag) as? NSMutableDictionary else {
+            return
+        }
+        OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: newActiveData, with: newActiveState, andDestination: delegate)
             sock.readData(withTimeout: -1, tag: tag)
     }
     
@@ -258,7 +258,6 @@ public class Server: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate
         let socket = Socket(with: rawReplySocket)
         socket.host = GCDAsyncUdpSocket.host(fromAddress: address)
         socket.port = self.udpReplyPort
-        debugPrint("UDP Socket: \(sock) Did Receive Data \(data)")
         guard let packetDestination = delegate else { return }
         OSCParser().process(OSCDate: data, for: packetDestination, with: socket)
     }

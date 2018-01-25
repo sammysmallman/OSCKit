@@ -34,4 +34,8 @@ FOUNDATION_EXPORT const unsigned char OSCKitVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <OSCKit/PublicHeader.h>
 
+#define END             0300    /* indicates end of packet */
+#define ESC             0333    /* indicates byte stuffing */
+#define ESC_END         0334    /* ESC ESC_END means END data byte */
+#define ESC_ESC         0335    /* ESC ESC_ESC means ESC data byte */
 

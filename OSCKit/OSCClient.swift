@@ -1,9 +1,9 @@
 //
-//  Client.swift
+//  OSCClient.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Artifice Industries Ltd. http://artificers.co.uk
+//  Copyright © 2017 Sam Smallman. http://sammy.io
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 import Foundation
 import CocoaAsyncSocket
 
-public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
+public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
     
     private var socket: Socket?
     private var userData: NSData?
@@ -36,7 +36,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
     private var activeData = NSMutableDictionary()
     private var activeState = NSMutableDictionary()
     
-    public var delegate: ClientDelegate?
+    public var delegate: (OSCClientDelegate & OSCPacketDestination)?
     
     public var isConnected: Bool {
         get {
@@ -51,7 +51,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         }
     }
     
-    public var interface: String? = "localhost" {
+    public var interface: String? {
         didSet {
             if let aInterface = interface, aInterface.isEmpty {
                 interface = nil
@@ -89,6 +89,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
             self.socket = Socket(with: tcpSocket)
             guard let sock = self.socket else { return }
             self.readState.setValue(sock, forKey: "socket")
+            self.readState.setValue(false, forKey: "dangling_ESC")
         } else {
             let udpSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
             self.socket = Socket(with: udpSocket)
@@ -101,6 +102,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
     
     internal func destroySocket() {
         self.readState.removeObject(forKey: "socket")
+        self.readState.removeObject(forKey: "dangling_ESC")
         self.socket?.disconnect()
         self.socket = nil
     }
@@ -119,7 +121,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         self.readState.setValue(false, forKey: "dangling_ESC")
     }
     
-    public func sendPacket(with data: Data) {
+    public func send(packet: OSCPacket) {
         if self.socket == nil {
             do {
                 try connect()
@@ -134,8 +136,10 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         if let tcpSocket = sock.tcpSocket, sock.isTCPSocket {
             // Listen for a potential response.
             tcpSocket.readData(withTimeout: -1, tag: 0)
+            sock.sendTCP(packet: packet, withStreamFraming: streamFraming)
+        } else {
+           sock.sendUDP(packet: packet)
         }
-        sock.sendPacket(with: data)
     }
     
     // MARK: GCDAsyncSocketDelegate
@@ -158,17 +162,16 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
     
     public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
         #if Client_Debug
-            let newData = data as NSData
-            debugPrint("Client Socket: \(sock) didRead Data of length: \(newData.length), withTag: \(tag)")
+            debugPrint("Client Socket: \(sock) didRead Data of length: \(data.count), withTag: \(tag)")
         #endif
         
-        let newActiveData = self.activeData.object(forKey: NSNumber(integerLiteral: tag))
-        let newActiveState = self.activeState.object(forKey: NSNumber(integerLiteral: tag))
-        if (newActiveData != nil) && (newActiveState != nil) {
-            print("Read Slip Data")
-            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState)
+        guard let delegate = self.delegate else { return }
+//        guard let newActiveData = self.activeData.object(forKey: tag) as? NSMutableData, let newActiveState = self.activeState.object(forKey: tag) as? NSMutableDictionary else {
+//            print(new)
+//            return
+//        }
+            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState, andDestination: delegate)
             sock.readData(withTimeout: -1, tag: tag)
-        }
     }
     
     public func socket(_ sock: GCDAsyncSocket, didReadPartialDataOfLength partialLength: UInt, tag: Int) {
@@ -207,7 +210,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         #if Client_Debug
             debugPrint("Client Socket: \(sock) didCloseReadStream")
         #endif
-        self.readData = NSMutableData()
+        self.readData.setData(Data())
         self.readState.setValue(false, forKey: "dangling_ESC")
     }
     
@@ -215,7 +218,7 @@ public class Client : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegat
         #if Client_Debug
             debugPrint("Client Socket: \(sock) didDisconnect, withError: \(String(describing: err))")
         #endif
-        self.readData = NSMutableData()
+        self.readData.setData(Data())
         self.readState.setValue(false, forKey: "dangling_ESC")
         guard let delegate = self.delegate else { return }
         delegate.clientDidDisconnect(client: self)

@@ -1,9 +1,9 @@
 //
-//  Socket.swift
+//  OSCSocket.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Artifice Industries Ltd. http://artificers.co.uk
+//  Copyright © 2017 Sam Smallman. http://sammy.io
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,24 @@
 import Foundation
 import CocoaAsyncSocket
 
+extension Socket: CustomStringConvertible {
+    public var description: String {
+        if isTCPSocket {
+            return "TCP Socket \(self.host ?? "No Host"):\(self.port) isConnected = \(isConnected)"
+        } else {
+            return "UDP Socket \(self.host ?? "No Host"):\(self.port)"
+        }
+    }
+}
+
 public class Socket {
+    
+    private enum slipCharacter: Int {
+        case END = 0o0300       /* indicates end of packet */
+        case ESC = 0o0333       /* indicates byte stuffing */
+        case ESC_END = 0o0334   /* ESC ESC_END means END data byte */
+        case ESC_ESC = 0o0335   /* ESC ESC_ESC means ESC data byte */
+    }
     
     private let timeout: TimeInterval = 3.0
     
@@ -86,21 +103,12 @@ public class Socket {
         self.udpSocket = nil
     }
     
-    //    override var description : String {
-    //        if self.isTCPSocket() {
-    //            return "TCP Socket \(String(reflecting: self.host)):\(String(reflecting: self.port)), isConnected = \(isConnected())"
-    //        } else {
-    //            return "UDP Socket \(String(reflecting: self.host)):\(String(reflecting: self.port))"
-    //        }
-    //    }
-    
     func joinMulticast(group: String) throws {
         guard let socket = udpSocket else { return }
         if let aInterface = self.interface {
             try socket.joinMulticastGroup(group, onInterface: aInterface)
         } else {
             try socket.joinMulticastGroup(group)
-            print("Without Interface")
         }
         #if Socket_Debug
             debugPrint("UDP Socket - Joined Multicast Group: \(group)")
@@ -135,7 +143,6 @@ public class Socket {
             }
         }
         if let socket = self.udpSocket {
-             print("UDP Socket")
             if let aInterface = self.interface {
                 #if Socket_Debug
                     debugPrint("UDP Socket - Start Listening on Interface: \(aInterface), withPort: \(port)")
@@ -182,12 +189,41 @@ public class Socket {
         socket.disconnect()
     }
     
-    func sendPacket(with data: Data) {
-        if let socket = self.tcpSocket {
-            let aData = data as NSData
-            socket.write(data, withTimeout: timeout, tag: aData.length)
+    func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCParser.streamFraming) {
+        if let socket = self.tcpSocket, !packet.packetData().isEmpty {
+            if streamFraming == .SLIP {
+                // Outgoing OSC messages are framed using the double END SLIP protocol http://www.rfc-editor.org/rfc/rfc1055.txt
+
+                let escENDbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_END.rawValue)]
+                let escEND = UInt16(escENDbytes[0]) << 8 | UInt16(escENDbytes[1])
+                let escESCbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_ESC.rawValue)]
+                let escESC = UInt16(escESCbytes[0]) << 8 | UInt16(escESCbytes[1])
+                let end = UInt8(slipCharacter.END.rawValue)
+                
+                var slipData = Data()
+                var endValue = end.bigEndian
+                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
+                
+                for byte in packet.packetData() {
+                    if byte == UInt8(slipCharacter.END.rawValue) {
+                        var escENDValue = escEND.bigEndian
+                        slipData.append(UnsafeBufferPointer(start: &escENDValue, count: 2))
+                    } else if byte == UInt8(slipCharacter.ESC.rawValue) {
+                        var escESCValue = escESC.bigEndian
+                        slipData.append(UnsafeBufferPointer(start: &escESCValue, count: 2))
+                    } else {
+                        var byteValue = byte
+                        slipData.append(UnsafeBufferPointer(start: &byteValue, count: 1))
+                    }
+                }
+                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
+                socket.write(slipData, withTimeout: timeout, tag: packet.packetData().count)
+            }
         }
-        if let socket = self.udpSocket {
+    }
+    
+    func sendUDP(packet: OSCPacket) {
+        if let socket = self.udpSocket, !packet.packetData().isEmpty {
             if let aInterface = self.interface {
                 do {
                     // Port 0 means that the OS should choose a random ephemeral port for this socket.
@@ -202,7 +238,7 @@ public class Socket {
                 debugPrint("Warning: \(socket) unable to enable UDP broadcast")
             }
             if let aHost = host {
-                socket.send(data, toHost: aHost, port: self.port, withTimeout: timeout, tag: 0)
+                socket.send(packet.packetData(), toHost: aHost, port: self.port, withTimeout: timeout, tag: 0)
                 socket.closeAfterSending()
             }
         }

@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Artifice Industries Ltd. http://artificers.co.uk
+//  Copyright © 2017 Sam Smallman. http://sammy.io
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -34,23 +34,32 @@ public class OSCBundle: OSCPacket {
     public var elements: [OSCPacket] = []
     public var replySocket: Socket?
     
-    public init(bundleWithMessages messages: [OSCMessage], timeTag: OSCTimeTag) {
-        bundle(withMessages: messages, timeTag: timeTag, replySocket: nil)
+    public init(bundleWithMessages messages: [OSCMessage]) {
+        // Bundle made with messages and a immediate OSC Time Tag.
+        bundle(withElements: messages, timeTag: OSCTimeTag.init(), replySocket: nil)
     }
     
-    public init(bundleWithMessages messages: [OSCMessage], timeTag: OSCTimeTag, replySocket: Socket?) {
-        bundle(withMessages: messages, timeTag: timeTag, replySocket: replySocket)
+    public init(bundleWithElements elements: [OSCPacket], timeTag: OSCTimeTag) {
+        bundle(withElements: elements, timeTag: timeTag, replySocket: nil)
     }
     
-    private func bundle(withMessages messages: [OSCMessage], timeTag: OSCTimeTag, replySocket: Socket?) {
+    public init(bundleWithElements elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
+        bundle(withElements: elements, timeTag: timeTag, replySocket: replySocket)
+    }
+    
+    private func bundle(withElements elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
         self.timeTag = timeTag
-        self.elements = messages
+        self.elements = elements
         self.replySocket = replySocket
     }
     
-    
     public func packetData()->Data {
-        return Data()
+        var result = "#bundle".oscStringData()
+        result.append(self.timeTag.oscTimeTagData())
+        for element in elements {
+            result.append(element.packetData())
+        }
+        return result
     }
     
 }
