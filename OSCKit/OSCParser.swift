@@ -198,7 +198,6 @@ public class OSCParser {
                 buffer.removeAll()
                 socket.tcpSocket?.readData(withTimeout: -1, tag: 0)
             }
-            
         }
     }
     
