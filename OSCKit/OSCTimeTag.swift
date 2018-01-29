@@ -68,8 +68,6 @@ public class OSCTimeTag {
         self.immediate = false
     }
     
-    
-    
     // immediate Time Tag
     public init() {
         self.seconds = 0

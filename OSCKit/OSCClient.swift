@@ -138,7 +138,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
             tcpSocket.readData(withTimeout: -1, tag: 0)
             sock.sendTCP(packet: packet, withStreamFraming: streamFraming)
         } else {
-           sock.sendUDP(packet: packet)
+            sock.sendUDP(packet: packet)
         }
     }
     
@@ -166,12 +166,12 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         #endif
         
         guard let delegate = self.delegate else { return }
-//        guard let newActiveData = self.activeData.object(forKey: tag) as? NSMutableData, let newActiveState = self.activeState.object(forKey: tag) as? NSMutableDictionary else {
-//            print(new)
-//            return
-//        }
-            OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState, andDestination: delegate)
+        do {
+            try OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState, andDestination: delegate)
             sock.readData(withTimeout: -1, tag: tag)
+        } catch {
+            print("Error: \(error)")
+        }
     }
     
     public func socket(_ sock: GCDAsyncSocket, didReadPartialDataOfLength partialLength: UInt, tag: Int) {
@@ -259,8 +259,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
         // Client UDP Sockets do not receive data.
         #if Client_Debug
-            let newData = data as NSData
-            debugPrint("UDP Socket: \(sock) didReceiveData of Length: \(newData.length), fromAddress \(address)")
+            debugPrint("UDP Socket: \(sock) didReceiveData of Length: \(data.count), fromAddress \(address)")
         #endif
     }
     

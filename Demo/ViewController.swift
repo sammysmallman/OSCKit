@@ -33,9 +33,9 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     }
     
     override func viewDidAppear() {
-//        client.interface = "172.16.6.132"
-        client.host = "192.168.0.26"
+        client.host = "10.101.91.101"
 //        client.interface = "en0"
+        client.streamFraming = .PLH
         client.port = 3032
         client.useTCP = true
         client.delegate = self

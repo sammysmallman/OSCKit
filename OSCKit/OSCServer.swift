@@ -103,7 +103,6 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
         } catch let error as NSError {
             print(error.localizedDescription)
         }
-
     }
     
     public func stopListening() {
@@ -152,8 +151,13 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
         guard let newActiveData = self.activeData.object(forKey: tag) as? NSMutableData, let newActiveState = self.activeState.object(forKey: tag) as? NSMutableDictionary else {
             return
         }
-        OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: newActiveData, with: newActiveState, andDestination: delegate)
+        do {
+            try OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: newActiveData, with: newActiveState, andDestination: delegate)
             sock.readData(withTimeout: -1, tag: tag)
+        } catch {
+            print("Error: \(error)")
+        }
+        
     }
     
     public func socket(_ sock: GCDAsyncSocket, didReadPartialDataOfLength partialLength: UInt, tag: Int) {
@@ -259,7 +263,13 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
         socket.host = GCDAsyncUdpSocket.host(fromAddress: address)
         socket.port = self.udpReplyPort
         guard let packetDestination = delegate else { return }
-        OSCParser().process(OSCDate: data, for: packetDestination, with: socket)
+        do {
+            try  OSCParser().process(OSCDate: data, for: packetDestination, with: socket)
+        } catch OSCParserError.unrecognisedData {
+            debugPrint("Error: Unrecognized data \(newData)")
+        } catch {
+            print("Other error: \(error)")
+        }
     }
     
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket, withError error: Error?) {
