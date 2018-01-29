@@ -113,6 +113,9 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         }
         guard let sock = self.socket else { return }
         try sock.connect()
+        if let tcpSocket = sock.tcpSocket, sock.isTCPSocket {
+            tcpSocket.readData(withTimeout: -1, tag: 0)
+        }
     }
     
     public func disconnect() {

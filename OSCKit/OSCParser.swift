@@ -61,7 +61,7 @@ public class OSCParser {
     private var plhDataBuffer: Data?
     
     public func process(OSCDate data: Data, for destination: OSCPacketDestination, with replySocket: Socket) throws {
-        print("try")
+        print("try process data")
         if !data.isEmpty {
             let firstCharacter = data.prefix(upTo: 1)
             guard let string = String(data: firstCharacter, encoding: .utf8) else {
@@ -177,27 +177,27 @@ public class OSCParser {
             // Start iterating over the data as soon as we have something greater than UInt32.
             // The first 4 bytes will hopefully be the packet size so with any luck we'll have that to process.
             while buffer.count > 4 {
+                // Get the packet length of our first message.
                 let packetLength = buffer.subdata(in: buffer.startIndex..<buffer.startIndex + 4).withUnsafeBytes { (pointer: UnsafePointer<Int32>) -> Int32 in
                     return pointer.pointee.bigEndian
                 }
+                // Check to see if we actually have enough data to process.
                 if buffer.count - 4 >= packetLength {
-                    let possibleOSCData = buffer.subdata(in: Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength) + 4))
+                    let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength) + 4)
+                    let possibleOSCData = buffer.subdata(in: dataRange)
                     do {
                         try process(OSCDate: possibleOSCData, for: destination, with: socket)
+                        buffer.removeSubrange(dataRange)
                     } catch {
                         debugPrint("Error: Pass the byte along and hope for the best.")
+                        buffer.remove(at: 0)
                     }
-                    if buffer.count > Int(packetLength) + 4 {
-                        buffer = buffer.subdata(in: Range(buffer.startIndex + Int(packetLength) + 4..<buffer.endIndex))
-                    } else {
-                        plhDataBuffer = nil
-                        buffer.removeAll()
-                    }
+                } else {
+                    buffer.remove(at: 0)
                 }
-                plhDataBuffer = buffer
-                buffer.removeAll()
-                socket.tcpSocket?.readData(withTimeout: -1, tag: 0)
             }
+            plhDataBuffer = buffer
+            socket.tcpSocket?.readData(withTimeout: -1, tag: 0)
         }
     }
     
