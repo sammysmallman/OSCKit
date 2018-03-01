@@ -28,6 +28,8 @@ import Foundation
 
 // MARK: Message
 
+
+
 public class OSCMessage: OSCPacket {
     
     public var addressPattern: String = "/"
@@ -83,13 +85,28 @@ public class OSCMessage: OSCPacket {
                 case CFNumberType.float32Type, CFNumberType.float64Type, CFNumberType.floatType, CFNumberType.doubleType, CFNumberType.cgFloatType:
                     newTypeTagString.append("f")
                 default:
-                    debugPrint("Number with unrecognised type: \(argument)")
+                    debugPrint("Number with unrecognised type: \(String(describing: argument))")
                     continue
                 }
             } else if argument is OSCTimeTag {
                 newTypeTagString.append("t")
+            } else if argument is OSCArgument {
+                guard let oscArgument = argument as? OSCArgument else {
+                    break
+                }
+                switch oscArgument {
+                case .oscTrue:
+                    newTypeTagString.append("T")
+                case .oscFalse:
+                    newTypeTagString.append("F")
+                case .oscNil:
+                    newTypeTagString.append("N")
+                case .oscImpulse:
+                    newTypeTagString.append("I")
+                }
+                continue
             }
-            newArguments.append(argument)
+            newArguments.append(argument as Any)
         }
         self.arguments = newArguments
         self.typeTagString = newTypeTagString
@@ -128,6 +145,9 @@ public class OSCMessage: OSCPacket {
                     break
                 }
                 result.append(timeTag.oscTimeTagData())
+            } else if argument is OSCArgument {
+                // OSC Arguments T,F,N,I, have no data within the arguements.
+                continue
             }
         }
         return result

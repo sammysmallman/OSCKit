@@ -45,7 +45,16 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
         } catch let error as NSError {
             print(error.localizedDescription)
         }
-
+        
+        let annotation = "/an/address/pattern=1,impulse,3.142,nil,\"a string argument with spaces\",string,true,false"
+        print("Annotation Input: \(annotation)")
+        if let oscMessage = OSCAnnotation.oscMessage(for: annotation, with: .equalsComma) {
+            print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .equalsComma, andType: true))")
+        }
+        
+//        let aMessage = OSCMessage(messageWithAddressPattern: "/stamp/is/here", arguments: [1,3.142,"string","string with spaces"])
+//        print(OSCAnnotation.annotation(for: aMessage, with: .equalsComma, andType: true))
+        
     }
     
 //    deinit {

@@ -241,6 +241,14 @@ public class OSCParser {
                         throw OSCParserError.cantParseOSCTimeTag
                     }
                     arguments.append(timeTagArgument)
+                case "T":
+                    arguments.append(OSCArgument.oscTrue)
+                case "F":
+                    arguments.append(OSCArgument.oscFalse)
+                case "N":
+                    arguments.append(OSCArgument.oscNil)
+                case "I":
+                    arguments.append(OSCArgument.oscImpulse)
                 default:
                     continue
                 }
