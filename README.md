@@ -31,7 +31,7 @@ Create client
 ```swift
 let client = OSCClient()
 client.interface = "en0"
-client.host = "localhost"
+client.host = "10.101.100.101"
 client.port = 3001
 client.useTCP = true
 client.delegate = self
