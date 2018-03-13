@@ -65,31 +65,13 @@ public class OSCAnnotation {
     public func isValid(annotation: String, with style: AnnotationStyle) -> Bool {
         switch style {
         case .equalsComma:
-            do {
-                let equalsCommaRegex = "^(\\/[^ \\#*,?\\[\\]{}=]+)((?:=\"[^\"]+\")|(?:=[^\\s\",]+)){0,1}((?:(?:,\"[^\"]+\")|(?:,[^\\s\"=,]+))*)"
-                let regularExpression = try NSRegularExpression(pattern: equalsCommaRegex, options: [])
-                let matches = regularExpression.rangeOfFirstMatch(in: annotation, options: [], range: annotation.nsrange)
-                if matches == annotation.nsrange {
-                    return true
-                } else {
-                    return false
-                }
-            } catch {
-                return false
-            }
+            let equalsCommaRegex = "^(\\/[^ \\#*,?\\[\\]{}=]+)((?:=\"[^\"]+\")|(?:=[^\\s\",]+)){0,1}((?:(?:,\"[^\"]+\")|(?:,[^\\s\"=,]+))*)"
+            let predicate = NSPredicate(format: "SELF MATCHES %@", equalsCommaRegex)
+            return predicate.evaluate(with: annotation)
         case .spaces:
-            do {
-                let spacesRegex = "^(\\/(?:[^ \\#*,?\\[\\]{}]+))((?:(?: \"[^\"]+\")|(?: (?:[^\\s\"])+))*)"
-                let regularExpression = try NSRegularExpression(pattern: spacesRegex, options: [])
-                let matches = regularExpression.rangeOfFirstMatch(in: annotation, options: [], range: annotation.nsrange)
-                if matches == annotation.nsrange {
-                    return true
-                } else {
-                    return false
-                }
-            } catch {
-                return false
-            }
+            let spacesRegex = "^(\\/(?:[^ \\#*,?\\[\\]{}]+))((?:(?: \"[^\"]+\")|(?: (?:[^\\s\"])+))*)"
+            let predicate = NSPredicate(format: "SELF MATCHES %@", spacesRegex)
+            return predicate.evaluate(with: annotation)
         }
     }
     
@@ -139,7 +121,7 @@ public class OSCAnnotation {
                                     oscArguments.append(argument)
                                 }
                             }
-    
+                            
                         }
                     }
                 }
