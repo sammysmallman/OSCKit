@@ -68,6 +68,11 @@ public class Socket {
         }
     }
     
+    public func reusePort(reuse: Bool) throws {
+        guard let socket = self.udpSocket else { return }
+        try socket.enableReusePort(reuse)
+    }
+    
     public var isTCPSocket: Bool {
         get {
             return self.tcpSocket != nil

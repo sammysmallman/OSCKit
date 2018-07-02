@@ -54,20 +54,34 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
             self.udpSocket?.port = newValue
         }
     }
+    public var reusePort: Bool = false {
+        willSet {
+            stopListening()
+            do {
+                try self.udpSocket?.reusePort(reuse: newValue)
+            } catch {
+                print("Error: \(error)")
+            }
+        }
+    }
     public var streamFraming: OSCParser.streamFraming = .SLIP
     
     private var udpReplyPort: UInt16 = 0
     public var delegate: OSCPacketDestination?
     
-    public override init() {
+    public init(dispatchQueue: DispatchQueue) {
         super.init()
-        let rawTCPSocket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue.main)
-        let rawUDPSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
+        let rawTCPSocket = GCDAsyncSocket(delegate: self, delegateQueue: dispatchQueue)
+        let rawUDPSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: dispatchQueue)
         self.tcpSocket = Socket(with: rawTCPSocket)
         self.udpSocket = Socket(with: rawUDPSocket)
         self.activeTCPSockets = NSMutableDictionary(capacity: 1)
         self.activeData = NSMutableDictionary(capacity: 1)
         self.activeState = NSMutableDictionary(capacity: 1)
+    }
+    
+    convenience public override init() {
+        self.init(dispatchQueue: DispatchQueue.main)
     }
     
     deinit {
