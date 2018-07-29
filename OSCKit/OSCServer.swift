@@ -39,7 +39,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     private var activeData: NSMutableDictionary!        // NSMutableData keyed by index; buffers the incoming data.
     private var activeState: NSMutableDictionary!       // NSMutableDictionary keyed by index; stores state of incoming data.
     private var activeIndex: Int = 0
-    private var joinedMultiCastGroups: [String] = []
+    private var joinedMulticastGroups: [String] = []
     public var interface: String = "localhost" {
         willSet {
             stopListening()
@@ -59,8 +59,8 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
             stopListening()
             do {
                 try self.udpSocket?.reusePort(reuse: newValue)
-            } catch {
-                print("Error: \(error)")
+            } catch let error as NSError {
+                print("Error: \(error.localizedDescription)")
             }
         }
     }
@@ -85,25 +85,31 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     }
     
     deinit {
-        for group in joinedMultiCastGroups {
+        for group in joinedMulticastGroups {
             try! udpSocket.leaveMulticast(group: group)
         }
+        stopListening()
     }
     
     // MARK: Multicasting
     
+    public func startListening(with groups: [String]) throws {
+        joinedMulticastGroups = groups
+        try udpSocket.startListening(with: groups)
+    }
+    
     public func joinMulticast(group: String) throws {
         try udpSocket.joinMulticast(group: group)
-        if !joinedMultiCastGroups.contains(group) {
-            joinedMultiCastGroups.append(group)
+        if !joinedMulticastGroups.contains(group) {
+            joinedMulticastGroups.append(group)
         }
     }
     
     public func leaveMulticast(group: String) throws {
         try udpSocket.leaveMulticast(group: group)
-        if joinedMultiCastGroups.contains(group) {
-            if let index = joinedMultiCastGroups.index(of: group) {
-                joinedMultiCastGroups.remove(at: index)
+        if joinedMulticastGroups.contains(group) {
+            if let index = joinedMulticastGroups.index(of: group) {
+                joinedMulticastGroups.remove(at: index)
             }
         }
     }
@@ -121,6 +127,13 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     
     public func stopListening() {
         tcpSocket.stopListening()
+        for group in joinedMulticastGroups {
+            do {
+                try udpSocket.leaveMulticast(group: group)
+            } catch let error as NSError {
+                print(error.localizedDescription)
+            }
+        }
         udpSocket.stopListening()
     }
     

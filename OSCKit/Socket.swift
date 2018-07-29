@@ -164,6 +164,19 @@ public class Socket {
         }
     }
     
+    func startListening(with groups: [String]) throws {
+        if let socket = self.udpSocket {
+            #if Socket_Debug
+            debugPrint("UDP Socket - Start Listening on Port: \(port)")
+            #endif
+            try socket.bind(toPort: port)
+            try socket.beginReceiving()
+            for group in groups {
+                try joinMulticast(group: group)
+            }
+        }
+    }
+    
     func stopListening() {
         if self.isTCPSocket {
             guard let socket = self.tcpSocket else { return }

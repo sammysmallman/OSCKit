@@ -13,7 +13,7 @@ import OSCKit
 class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination {
     
     let server = OSCServer()
-
+    
     @IBOutlet var textView: NSTextView!
     
     let client = OSCClient()
@@ -23,18 +23,18 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
         
         interfaces()
         
-                server.port = 24601
-                server.delegate = self
-                do {
-                    try server.startListening()
-                } catch let error as NSError {
-                    print(error.localizedDescription)
-                }
+        server.port = 24601
+        server.delegate = self
+        do {
+            try server.startListening()
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
     }
     
     override func viewDidAppear() {
         client.host = "192.168.0.26"
-//        client.interface = "en0"
+        //        client.interface = "en0"
         client.streamFraming = .PLH
         client.port = 3032
         client.useTCP = true
@@ -52,20 +52,15 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
             print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .equalsComma, andType: true))")
         }
         
-//        let aMessage = OSCMessage(messageWithAddressPattern: "/stamp/is/here", arguments: [1,3.142,"string","string with spaces"])
-//        print(OSCAnnotation.annotation(for: aMessage, with: .equalsComma, andType: true))
+        //        let aMessage = OSCMessage(messageWithAddressPattern: "/stamp/is/here", arguments: [1,3.142,"string","string with spaces"])
+        //        print(OSCAnnotation.annotation(for: aMessage, with: .equalsComma, andType: true))
         
     }
     
-//    deinit {
-//        client.disconnect()
-//    }
-    
-    override var representedObject: Any? {
-        didSet {
-            // Update the view, if already loaded.
-        }
-    }
+    //    deinit {
+    //        client.disconnect()
+    //    }
+
     
     func clientDidConnect(client: OSCClient) {
         print("CLient Did Connect")
