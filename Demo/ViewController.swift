@@ -49,7 +49,7 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
         let annotation = "/an/address/pattern=1,impulse,3.142,nil,\"a string argument with spaces\",string,true,false"
         print("Annotation Input: \(annotation)")
         if let oscMessage = OSCAnnotation.oscMessage(for: annotation, with: .equalsComma) {
-            print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .equalsComma, andType: true))")
+            print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .equalsComma, andType: false))")
         }
         
         //        let aMessage = OSCMessage(messageWithAddressPattern: "/stamp/is/here", arguments: [1,3.142,"string","string with spaces"])

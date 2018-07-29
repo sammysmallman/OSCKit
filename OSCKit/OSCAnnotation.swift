@@ -41,8 +41,11 @@ extension String {
         return Int(self)
     }
     var isNumber: Bool {
-        let characters = CharacterSet.decimalDigits.inverted
-        return !self.isEmpty && rangeOfCharacter(from: characters) == nil
+        if let _ = Double(self) {
+            return true
+        } else {
+            return false
+        }
     }
 }
 
@@ -158,69 +161,90 @@ public class OSCAnnotation {
                 case "s":
                     if let stringArg = message.arguments[argumentIndex] as? String {
                         if stringArg.contains(" ") {
-                            string += ",\"\(stringArg)\""
+                            string += "\"\(stringArg)\""
                         } else {
-                            string += ",\(stringArg)"
+                            string += "\(stringArg)"
                         }
                         if type {
-                            string += "(s)"
+                            string += "(s),"
+                        } else {
+                           string += ","
                         }
                         argumentIndex += 1
                     }
                 case "b":
                     if let blobArg = message.arguments[argumentIndex] as? Data {
-                        string += ",Bytes:\(blobArg.count)"
+                        string += "Bytes:\(blobArg.count)"
                         if type {
-                            string += "(b)"
+                            string += "(b),"
+                        } else {
+                            string += ","
                         }
                         argumentIndex += 1
                     }
                 case "i":
                     if let intArg = message.arguments[argumentIndex] as? NSNumber {
-                        string += ",\(intArg)"
+                        string += "\(intArg)"
                         if type {
-                            string += "(i)"
+                            string += "(i),"
+                        } else {
+                            string += ","
                         }
                         argumentIndex += 1
                     }
                 case "f":
                     if let floatArg = message.arguments[argumentIndex] as? NSNumber {
-                        string += ",\(floatArg)"
+                        string += "\(floatArg)"
                         if type {
-                            string += "(f)"
+                            string += "(f),"
+                        } else {
+                            string += ","
                         }
                         argumentIndex += 1
                     }
                 case "t":
                     if let timeTagArg = message.arguments[argumentIndex] as? OSCTimeTag {
-                        string += ",\(timeTagArg.hex())"
+                        string += "\(timeTagArg.hex())"
                         if type {
-                            string += "(t)"
+                            string += "(t),"
+                        } else {
+                            string += ","
                         }
                         argumentIndex += 1
                     }
                 case "T":
-                    string += ",true"
+                    string += "true"
                     if type {
-                        string += "(T)"
+                        string += "(T),"
+                    } else {
+                        string += ","
                     }
                 case "F":
-                    string += ",false"
+                    string += "false"
                     if type {
-                        string += "(F)"
+                        string += "(F),"
+                    } else {
+                        string += ","
                     }
                 case "N":
-                    string += ",nil"
+                    string += "nil"
                     if type {
-                        string += "(N)"
+                        string += "(N),"
+                    } else {
+                        string += ","
                     }
                 case "I":
-                    string += ",impulse"
+                    string += "impulse"
                     if type {
-                        string += "(I)"
+                        string += "(I),"
+                    } else {
+                        string += ","
                     }
                 default: break
                 }
+            }
+            if message.typeTagString.count > 1 {
+                string.removeLast()
             }
         case .spaces:
             for typeTag in message.typeTagString {
