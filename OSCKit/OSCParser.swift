@@ -61,7 +61,6 @@ public class OSCParser {
     private var plhDataBuffer: Data?
     
     public func process(OSCDate data: Data, for destination: OSCPacketDestination, with replySocket: Socket) throws {
-        print("try process data")
         if !data.isEmpty {
             let firstCharacter = data.prefix(upTo: 1)
             guard let string = String(data: firstCharacter, encoding: .utf8) else {
@@ -132,7 +131,6 @@ public class OSCParser {
                         data.append(Data(bytes: [esc]))
                     } else {
                         // Protocol violation. Pass the byte along and hope for the best.
-                        debugPrint("Error: Protocol violation. Pass the byte along and hope for the best.")
                         data.append(Data(bytes: [buffer[index]]))
                     }
                 } else if byte == end {
@@ -152,12 +150,10 @@ public class OSCParser {
                             data.append(Data(bytes: [esc]))
                         } else {
                             // Protocol violation. Pass the byte along and hope for the best.
-                            debugPrint("Error: Protocol violation. Pass the byte along and hope for the best.")
                             data.append(Data(bytes: [buffer[index + 1]]))
                         }
                     } else {
                         // The incoming raw data stopped in the middle of an escape sequence.
-                        debugPrint("Error: Incoming raw data stopped in the middle of an escape sequence.")
                         state.setValue(true, forKey: "dangling_ESC")
                     }
                 } else {
@@ -189,7 +185,6 @@ public class OSCParser {
                         try process(OSCDate: possibleOSCData, for: destination, with: socket)
                         buffer.removeSubrange(dataRange)
                     } catch {
-                        debugPrint("Error: Pass the byte along and hope for the best.")
                         buffer.remove(at: 0)
                     }
                 } else {
@@ -333,7 +328,7 @@ public class OSCParser {
     private func oscString(with buffer: Data, startIndex firstIndex: inout Int) -> String? {
         // Read the data from the start index until you hit a zero, the part before will be the string data.
         for (index, byte) in buffer[firstIndex...].enumerated() where byte == 0 {
-            guard let result = String(data: buffer[firstIndex...(firstIndex + index)], encoding: .utf8) else { return nil }
+            guard let result = String(data: buffer[firstIndex..<(firstIndex + index)], encoding: .utf8) else { return nil }
             /* An OSC String is a sequence of non-null ASCII characters followed by a null, followed by 0-3 additional null characters to make the total number of bits a multiple of 32 Bits, 4 Bytes.
              */
             firstIndex = (4 * Int(ceil(Double(firstIndex + index + 1) / 4)))

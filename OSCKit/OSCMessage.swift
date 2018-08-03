@@ -28,8 +28,6 @@ import Foundation
 
 // MARK: Message
 
-
-
 public class OSCMessage: OSCPacket {
     
     public var addressPattern: String = "/"

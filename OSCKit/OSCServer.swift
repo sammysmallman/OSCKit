@@ -293,7 +293,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
         do {
             try  OSCParser().process(OSCDate: data, for: packetDestination, with: socket)
         } catch OSCParserError.unrecognisedData {
-            debugPrint("Error: Unrecognized data \(newData)")
+            debugPrint("Error: Unrecognized data \(data)")
         } catch {
             print("Other error: \(error)")
         }
