@@ -109,10 +109,6 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     func write(_ message: OSCMessage, withIndent indent: Int) {
         let stringIndent = String(repeating: "\t", count: indent)
         textView.string += "\(stringIndent)\(message.addressPattern)\n"
-        if message.addressParts.count == 7 && message.addressPattern.hasPrefix("/eos/out/event/cue/") && message.addressPattern.hasSuffix("/fire") {
-            let stringIndent = String(repeating: "\t", count: indent)
-            textView.string += "\(stringIndent) Received Cue\n"
-        }
     }
     
     func take(message: OSCMessage) {
