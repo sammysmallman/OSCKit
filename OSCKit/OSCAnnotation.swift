@@ -47,9 +47,7 @@ extension String {
             return false
         }
     }
-}
-
-extension String {
+    
     func substring(with nsrange: NSRange) -> Substring? {
         guard let range = Range(nsrange, in: self) else { return nil }
         return self[range]
@@ -138,10 +136,53 @@ public class OSCAnnotation {
                 let regularExpression = try NSRegularExpression(pattern: spacesRegex, options: [])
                 let matches = regularExpression.matches(in: annotation, options: [], range: annotation.nsrange)
                 // There should only be one match. Range at index 1 will always be the address pattern. Range at index 2 will be the argument string prefaced with " "
-                guard let match = matches.first, match.range == annotation.nsrange, let addressPattern = annotation.substring(with: match.range(at: 1)), var argumentString = annotation.substring(with: match.range(at: 2)) else { return nil }
-                // remove the first " "
-                argumentString.removeFirst()
-                return OSCMessage(messageWithAddressPattern: String(addressPattern), arguments: [])
+                var oscArguments: [Any] = []
+                guard let match = matches.first, match.range == annotation.nsrange, let addressPattern = annotation.substring(with: match.range(at: 1)), let argumentString = annotation.substring(with: match.range(at: 2)) else { return nil }
+                let components = argumentString.components(separatedBy: "\"")
+                var argumentsArray: [String] = []
+                for (index, component) in components.enumerated() {
+                    if index % 2 != 0 {
+                        argumentsArray.append(component)
+                    } else {
+                        let arguments = component.split(separator: " ", omittingEmptySubsequences: true)
+                        for element in arguments {
+                            argumentsArray.append(String(element))
+                        }
+                    }
+                }
+                for argument in argumentsArray {
+                    if argument.isNumber {
+                        let formatter = NumberFormatter()
+                        formatter.numberStyle = .decimal
+                        if let numberArgument = formatter.number(from: argument) {
+                            oscArguments.append(numberArgument)
+                        }
+                    } else {
+                        switch argument {
+                        case "true":
+                            oscArguments.append(OSCArgument.oscTrue)
+                        case "false":
+                            oscArguments.append(OSCArgument.oscFalse)
+                        case "nil":
+                            oscArguments.append(OSCArgument.oscNil)
+                        case "impulse":
+                            oscArguments.append(OSCArgument.oscImpulse)
+                        default:
+                            // if the argument is prefaced with quotation marks, the regex dictates the argument should close with them.
+                            // Remove the quotation marks.
+                            if argument.first == "\"" {
+                                var quoationMarkArgument = argument
+                                quoationMarkArgument.removeFirst()
+                                quoationMarkArgument.removeLast()
+                                oscArguments.append(quoationMarkArgument)
+                            } else {
+                                oscArguments.append(argument)
+                            }
+                        }
+                        
+                    }
+                }
+                return OSCMessage(messageWithAddressPattern: String(addressPattern), arguments: oscArguments)
             } catch {
                 return nil
             }
@@ -168,7 +209,7 @@ public class OSCAnnotation {
                         if type {
                             string += "(s),"
                         } else {
-                           string += ","
+                            string += ","
                         }
                         argumentIndex += 1
                     }
