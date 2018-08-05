@@ -178,8 +178,8 @@ public class OSCParser {
                     return pointer.pointee.bigEndian
                 }
                 // Check to see if we actually have enough data to process.
-                if buffer.count - 4 >= packetLength {
-                    let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength) + 4)
+                if buffer.count >= packetLength + 4 {
+                    if let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength) + 4 
                     let possibleOSCData = buffer.subdata(in: dataRange)
                     do {
                         try process(OSCDate: possibleOSCData, for: destination, with: socket)
