@@ -33,7 +33,7 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     }
     
     override func viewDidAppear() {
-        client.host = "172.20.10.2"
+        client.host = "172.16.15.231"
         //        client.interface = "en0"
         client.streamFraming = .PLH
         client.port = 3032
@@ -47,11 +47,11 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
         }
         
 //        let annotation = "/an/address/pattern=1,impulse,3.142,nil,\"a string argument with spaces\",string,true,false"
-        let annotation = "/an/address/pattern \"the first string argument with spaces\" 1 impulse 3.142 nil \"a second string argument with spaces\" string true false \"a third string argument with spaces\""
-        print("Annotation Input: \(annotation)")
-        if let oscMessage = OSCAnnotation.oscMessage(for: annotation, with: .spaces) {
-            print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .spaces, andType: true))")
-        }
+//        let annotation = "/an/address/pattern \"the first string argument with spaces\" 1 impulse 3.142 nil \"a second string argument with spaces\" string true false \"a third string argument with spaces\""
+//        print("Annotation Input: \(annotation)")
+//        if let oscMessage = OSCAnnotation.oscMessage(for: annotation, with: .spaces) {
+//            print("Annotation Output: \(OSCAnnotation.annotation(for: oscMessage, with: .spaces, andType: true))")
+//        }
         
         //        let aMessage = OSCMessage(messageWithAddressPattern: "/stamp/is/here", arguments: [1,3.142,"string","string with spaces"])
         //        print(OSCAnnotation.annotation(for: aMessage, with: .equalsComma, andType: true))
@@ -109,7 +109,7 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     
     func write(_ message: OSCMessage, withIndent indent: Int) {
         let stringIndent = String(repeating: "\t", count: indent)
-        textView.string += "\(stringIndent)\(message.addressPattern)\n"
+        textView.string += "\(stringIndent)\(OSCAnnotation.annotation(for: message, with: .spaces, andType: true))\n"
     }
     
     func take(message: OSCMessage) {

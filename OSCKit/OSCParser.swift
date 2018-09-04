@@ -178,8 +178,8 @@ public class OSCParser {
                     return pointer.pointee.bigEndian
                 }
                 // Check to see if we actually have enough data to process.
-                if buffer.count >= packetLength + 4 {
-                    if let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength) + 4 
+                if buffer.count >= packetLength + 4, packetLength > 0 {
+                    let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength + 4))
                     let possibleOSCData = buffer.subdata(in: dataRange)
                     do {
                         try process(OSCDate: possibleOSCData, for: destination, with: socket)
@@ -324,7 +324,6 @@ public class OSCParser {
         return elements
     }
     
-    // TODO: for in loops copy on write. It would be more efficient to move along the data, one index at a time.
     private func oscString(with buffer: Data, startIndex firstIndex: inout Int) -> String? {
         // Read the data from the start index until you hit a zero, the part before will be the string data.
         for (index, byte) in buffer[firstIndex...].enumerated() where byte == 0 {
