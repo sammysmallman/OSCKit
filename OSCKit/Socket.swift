@@ -239,7 +239,7 @@ public class Socket {
             case .PLH:
                 // Outgoing OSC Packets are framed using a packet length header
                 var plhData = Data()
-                let size = Data(bytes: UInt32(packet.packetData().count).byteArray())
+                let size = Data(UInt32(packet.packetData().count).byteArray())
                 plhData.append(size)
                 plhData.append(packet.packetData())
                 socket.write(plhData, withTimeout: timeout, tag: plhData.count)

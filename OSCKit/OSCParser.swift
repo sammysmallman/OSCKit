@@ -126,12 +126,12 @@ public class OSCParser {
                     //                    dangling_ESC = false
                     state.setValue(false, forKey: "dangling_ESC")
                     if byte == UInt8(slipCharacter.ESC_END.rawValue) {
-                        data.append(Data(bytes: [end]))
+                        data.append(Data([end]))
                     } else if byte == UInt8(slipCharacter.ESC_ESC.rawValue) {
-                        data.append(Data(bytes: [esc]))
+                        data.append(Data([esc]))
                     } else {
                         // Protocol violation. Pass the byte along and hope for the best.
-                        data.append(Data(bytes: [buffer[index]]))
+                        data.append(Data([buffer[index]]))
                     }
                 } else if byte == end {
                     // The data is now a complete message.
@@ -145,19 +145,19 @@ public class OSCParser {
                 } else if byte == esc {
                     if index + 1 < length {
                         if buffer[index + 1] == UInt8(slipCharacter.ESC_END.rawValue) {
-                            data.append(Data(bytes: [end]))
+                            data.append(Data([end]))
                         } else if buffer[index + 1] == UInt8(slipCharacter.ESC_ESC.rawValue) {
-                            data.append(Data(bytes: [esc]))
+                            data.append(Data([esc]))
                         } else {
                             // Protocol violation. Pass the byte along and hope for the best.
-                            data.append(Data(bytes: [buffer[index + 1]]))
+                            data.append(Data([buffer[index + 1]]))
                         }
                     } else {
                         // The incoming raw data stopped in the middle of an escape sequence.
                         state.setValue(true, forKey: "dangling_ESC")
                     }
                 } else {
-                    data.append(Data(bytes: [buffer[index]]))
+                    data.append(Data([buffer[index]]))
                 }
             }
         case .PLH:
@@ -174,12 +174,13 @@ public class OSCParser {
             // The first 4 bytes will hopefully be the packet size so with any luck we'll have that to process.
             while buffer.count > 4 {
                 // Get the packet length of our first message.
+//                let packetLength = buffer.subdata(in: buffer.startIndex..<buffer.startIndex + 4).withUnsafeBytes({ $0.load(as: Int32.self) })
                 let packetLength = buffer.subdata(in: buffer.startIndex..<buffer.startIndex + 4).withUnsafeBytes { (pointer: UnsafePointer<Int32>) -> Int32 in
                     return pointer.pointee.bigEndian
                 }
                 // Check to see if we actually have enough data to process.
                 if buffer.count >= packetLength + 4, packetLength > 0 {
-                    let dataRange = Range(buffer.startIndex + 4..<buffer.startIndex + Int(packetLength + 4))
+                    let dataRange = buffer.startIndex + 4..<buffer.startIndex + Int(packetLength + 4)
                     let possibleOSCData = buffer.subdata(in: dataRange)
                     do {
                         try process(OSCDate: possibleOSCData, for: destination, with: socket)
@@ -262,7 +263,7 @@ public class OSCParser {
             }
             // Does the Bundle have any data in it? Bundles could be empty with no messages or bundles within.
             if startIndex < data.endIndex {
-                let bundleData = data.subdata(in: Range(startIndex..<data.endIndex))
+                let bundleData = data.subdata(in: startIndex..<data.endIndex)
                 let size = Int32(data.count - startIndex)
                 do {
                     let elements = try parseOSCBundleElements(with: 0, data: bundleData, andSize: size)
@@ -287,7 +288,7 @@ public class OSCParser {
                 throw OSCParserError.cantParseSizeOfElement
             }
             buffer += 4
-            guard let string = String(data: data.subdata(in: Range(startIndex..<data.endIndex)).prefix(upTo: 1), encoding: .utf8) else {
+            guard let string = String(data: data.subdata(in: startIndex..<data.endIndex).prefix(upTo: 1), encoding: .utf8) else {
                 throw OSCParserError.cantParseTypeOfElement
             }
             if string == "/" { // OSC Messages begin with /
@@ -305,7 +306,7 @@ public class OSCParser {
                     throw OSCParserError.cantParseOSCTimeTag
                 }
                 if startIndex < size {
-                    let bundleData = data.subdata(in: Range(startIndex..<startIndex + Int(elementSize) - 16))
+                    let bundleData = data.subdata(in: startIndex..<startIndex + Int(elementSize) - 16)
                     do {
                         let bundleElements = try parseOSCBundleElements(with: index, data: bundleData, andSize: Int32(bundleData.count))
                         elements.append(OSCBundle(bundleWithElements: bundleElements, timeTag: timeTag))

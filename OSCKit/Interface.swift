@@ -66,7 +66,7 @@ open class Interface : CustomStringConvertible, CustomDebugStringConvertible {
      * as separate instances of Interface.
      * - Returns: An array containing all network interfaces in your system.
      */
-    open static func allInterfaces() -> [Interface] {
+    public static func allInterfaces() -> [Interface] {
         var interfaces : [Interface] = []
         
         var ifaddrsPtr : UnsafeMutablePointer<ifaddrs>? = nil
@@ -206,19 +206,19 @@ open class Interface : CustomStringConvertible, CustomDebugStringConvertible {
     open var supportsMulticast: Bool { return multicastSupported }
     
     /// Field `ifaddrs->ifa_name`.
-    open let name : String
+    public let name : String
     
     /// Field `ifaddrs->ifa_addr->sa_family`.
-    open let family : Family
+    public let family : Family
     
     /// Extracted from `ifaddrs->ifa_addr`, supports both IPv4 and IPv6.
-    open let address : String?
+    public let address : String?
     
     /// Extracted from `ifaddrs->ifa_netmask`, supports both IPv4 and IPv6.
-    open let netmask : String?
+    public let netmask : String?
     
     /// Extracted from `ifaddrs->ifa_dstaddr`. Not applicable for IPv6.
-    open let broadcastAddress : String?
+    public let broadcastAddress : String?
     
     fileprivate let running : Bool
     fileprivate let up : Bool

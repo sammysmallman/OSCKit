@@ -30,48 +30,33 @@ import Foundation
 
 public class OSCMessage: OSCPacket {
     
-    public var addressPattern: String = "/"
-    public var addressParts: [String] { // Address Parts are components seperated by "/"
-        get {
-            var parts = self.addressPattern.components(separatedBy: "/")
-            parts.removeFirst()
-            return parts
-        }
-    }
-    public var arguments: [Any] = []
-    public var typeTagString: String = ","
-    public var replySocket: Socket?
+    public let addressPattern: String
+    public let addressParts: [String]  // Address Parts are components seperated by "/"
+    public let arguments: [Any]
+    public let typeTagString: String
+    public let argumentTypes: [OSCArgument]
+    public var replySocket: Socket? = nil
     
     public init(messageWithAddressPattern addressPattern: String, arguments: [Any]) {
-        message(with: addressPattern, arguments: arguments, replySocket: nil)
-    }
-    
-    public init(messageWithAddressPattern addressPattern: String, arguments: [Any], replySocket: Socket?) {
-        message(with: addressPattern, arguments: arguments, replySocket: replySocket)
-    }
-    
-    private func message(with addressPattern: String, arguments: [Any], replySocket: Socket?) {
-        set(addressPattern: addressPattern)
-        set(arguments: arguments)
-        self.replySocket = replySocket
-    }
-    
-    private func set(addressPattern: String) {
+//        self.replySocket = replySocket
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
             self.addressPattern = addressPattern
         }
-    }
-    
-    private func set(arguments: [Any]) {
+        var parts = self.addressPattern.components(separatedBy: "/")
+        parts.removeFirst()
+        self.addressParts = parts
         var newArguments: [Any] = []
         var newTypeTagString: String = ","
+        var types: [OSCArgument] = []
         for argument in arguments {
             if argument is String {
                 newTypeTagString.append("s")
+                types.append(.oscString)
             } else if argument is Data {
                 newTypeTagString.append("b")
+                types.append(.oscBlob)
             } else if argument is NSNumber {
                 guard let number = argument as? NSNumber else {
                     break
@@ -80,14 +65,17 @@ public class OSCMessage: OSCPacket {
                 switch numberType {
                 case CFNumberType.sInt8Type,CFNumberType.sInt16Type,CFNumberType.sInt32Type,CFNumberType.sInt64Type,CFNumberType.charType,CFNumberType.shortType,CFNumberType.intType,CFNumberType.longType,CFNumberType.longLongType,CFNumberType.nsIntegerType:
                     newTypeTagString.append("i")
+                    types.append(.oscInt)
                 case CFNumberType.float32Type, CFNumberType.float64Type, CFNumberType.floatType, CFNumberType.doubleType, CFNumberType.cgFloatType:
                     newTypeTagString.append("f")
+                    types.append(.oscFloat)
                 default:
                     debugPrint("Number with unrecognised type: \(String(describing: argument))")
                     continue
                 }
             } else if argument is OSCTimeTag {
                 newTypeTagString.append("t")
+                types.append(.oscTimetag)
             } else if argument is OSCArgument {
                 guard let oscArgument = argument as? OSCArgument else {
                     break
@@ -95,12 +83,17 @@ public class OSCMessage: OSCPacket {
                 switch oscArgument {
                 case .oscTrue:
                     newTypeTagString.append("T")
+                    types.append(.oscTrue)
                 case .oscFalse:
                     newTypeTagString.append("F")
+                    types.append(.oscFalse)
                 case .oscNil:
                     newTypeTagString.append("N")
+                    types.append(.oscNil)
                 case .oscImpulse:
                     newTypeTagString.append("I")
+                    types.append(.oscImpulse)
+                default: break
                 }
                 continue
             }
@@ -108,6 +101,7 @@ public class OSCMessage: OSCPacket {
         }
         self.arguments = newArguments
         self.typeTagString = newTypeTagString
+        self.argumentTypes = types
     }
     
     public func packetData()->Data {

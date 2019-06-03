@@ -8,12 +8,18 @@
 
 import Foundation
 
-    public enum OSCArgument {
-        case oscTrue
-        case oscFalse
-        case oscNil
-        case oscImpulse
-    }
+public enum OSCArgument {
+    case oscString
+    case oscBlob
+    case oscInt
+    case oscBool
+    case oscFloat
+    case oscTrue
+    case oscFalse
+    case oscNil
+    case oscImpulse
+    case oscTimetag
+}
 
 
 

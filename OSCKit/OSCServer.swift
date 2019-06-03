@@ -108,7 +108,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     public func leaveMulticast(group: String) throws {
         try udpSocket.leaveMulticast(group: group)
         if joinedMulticastGroups.contains(group) {
-            if let index = joinedMulticastGroups.index(of: group) {
+            if let index = joinedMulticastGroups.firstIndex(of: group) {
                 joinedMulticastGroups.remove(at: index)
             }
         }

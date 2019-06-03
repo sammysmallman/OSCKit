@@ -33,7 +33,7 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     }
     
     override func viewDidAppear() {
-        client.host = "172.16.15.231"
+        client.host = "172.16.6.83"
         //        client.interface = "en0"
         client.streamFraming = .PLH
         client.port = 3032
@@ -110,6 +110,9 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     func write(_ message: OSCMessage, withIndent indent: Int) {
         let stringIndent = String(repeating: "\t", count: indent)
         textView.string += "\(stringIndent)\(OSCAnnotation.annotation(for: message, with: .spaces, andType: true))\n"
+        for (index, argument) in message.argumentTypes.enumerated() {
+            print("\(argument): \(message.arguments[index])")
+        }
     }
     
     func take(message: OSCMessage) {
@@ -122,7 +125,7 @@ class ViewController: NSViewController, OSCClientDelegate, OSCPacketDestination 
     }
     
     @IBAction func sendMessage(_ sender: Any) {
-        let message = OSCMessage(messageWithAddressPattern: "/eos/ping", arguments: [])
+        let message = OSCMessage(messageWithAddressPattern: "/eos/ping", arguments: [true, false, "HEY", 3.142, 1])
         client.send(packet: message)
     }
 }
