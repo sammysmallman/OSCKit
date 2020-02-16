@@ -207,7 +207,7 @@ public class Socket {
         socket.disconnect()
     }
     
-    func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCParser.streamFraming) {
+    public func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCParser.streamFraming) {
         if let socket = self.tcpSocket, !packet.packetData().isEmpty {
             switch streamFraming {
             case .SLIP:
@@ -247,7 +247,7 @@ public class Socket {
         }
     }
     
-    func sendUDP(packet: OSCPacket) {
+    public func sendUDP(packet: OSCPacket) {
         if let socket = self.udpSocket, !packet.packetData().isEmpty {
             if let aInterface = self.interface {
                 do {
