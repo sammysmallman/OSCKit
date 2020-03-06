@@ -24,7 +24,7 @@
 //  THE SOFTWARE.
 //
 
-import Cocoa
+import Foundation
 
 extension String {
     /// An `NSRange` that represents the full range of the string.

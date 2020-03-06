@@ -28,13 +28,14 @@ import Foundation
 import SystemConfiguration
 
 extension Interface {
+    #if os(OSX)
     open var displayName : String {
         get {
             guard let interfaces = SCNetworkInterfaceCopyAll() as? [SCNetworkInterface] else {
                 return ""
             }
             for interface in interfaces where SCNetworkInterfaceGetBSDName(interface) as String? == self.name {
-                    return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
+                return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
             }
             return ""
         }
@@ -45,4 +46,5 @@ extension Interface {
             return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
         }
     }
+    #endif
 }

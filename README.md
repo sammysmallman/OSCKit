@@ -13,12 +13,6 @@ For convenience, I've included a few public domain source files, Thanks and curi
 [CocoaAsyncSocket](https://github.com/robbiehanson/CocoaAsyncSocket).  
 [Swift-Netutils](https://github.com/svdo/swift-netutils).
 
-
-
-## Demo
-
-Inluded is a small demo app "Demo"
-
 ## Quick Start
 ### OSC Client
 #### Step 1
@@ -32,7 +26,7 @@ Create client
 let client = OSCClient()
 client.interface = "en0"
 client.host = "10.101.100.101"
-client.port = 3001
+client.port = 24601
 client.useTCP = true
 client.delegate = self
 ```
@@ -63,7 +57,7 @@ OSCPacketDestination:
 #### Step 4
 Create a message
 ```swift
-let message = OSCMessage(messageWithAddressPattern: "/stamp/ping", arguments: [1, 3.142, "aStringArgument"])
+let message = OSCMessage(messageWithAddressPattern: "/stamp/remind", arguments: [1, 3.142, "aStringArgument"])
 ```
 #### Step 5
 Send a message

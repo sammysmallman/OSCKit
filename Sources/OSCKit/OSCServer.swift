@@ -28,7 +28,6 @@
 
 import Foundation
 import CocoaAsyncSocket
-import Cocoa
 
 public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
     

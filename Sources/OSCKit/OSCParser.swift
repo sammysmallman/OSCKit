@@ -123,7 +123,7 @@ public class OSCParser {
             let buffer = tcpData
             for (index, byte) in buffer.enumerated() {
                 if dangling_ESC {
-                    //                    dangling_ESC = false
+                    // dangling_ESC = false
                     state.setValue(false, forKey: "dangling_ESC")
                     if byte == UInt8(slipCharacter.ESC_END.rawValue) {
                         data.append(Data([end]))
