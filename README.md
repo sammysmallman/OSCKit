@@ -35,24 +35,24 @@ Conform to the Client Delegate Protocol's
 
 OSCClientDelegate:
 ```swift
-    func clientDidConnect(client: OSCClient) {
-        print("Client did connect")
-    }
-    
-    func clientDidDisconnect(client: OSCClient) {
-        print("Client did disconnect")
-    }
+func clientDidConnect(client: OSCClient) {
+    print("Client did connect")
+}
+
+func clientDidDisconnect(client: OSCClient) {
+    print("Client did disconnect")
+}
 ```    
 
 OSCPacketDestination:
 ```swift
-    func take(message: OSCMessage) {
-        print("Received message - \(message.addressPattern)")
-    }
-    
-    func take(bundle: OSCBundle) {
-        print("Received bundle - time tag: \(bundle.timeTag.hex() elements: \(bundle.elements.count)")
-    }
+func take(message: OSCMessage) {
+    print("Received message - \(message.addressPattern)")
+}
+
+func take(bundle: OSCBundle) {
+    print("Received bundle - time tag: \(bundle.timeTag.hex() elements: \(bundle.elements.count)")
+}
 ```   
 #### Step 4
 Create a message
