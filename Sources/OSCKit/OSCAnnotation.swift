@@ -63,7 +63,7 @@ public class OSCAnnotation {
         case spaces
     }
     
-    public func isValid(annotation: String, with style: AnnotationStyle) -> Bool {
+    public static func isValid(annotation: String, with style: AnnotationStyle) -> Bool {
         switch style {
         case .equalsComma:
             let equalsCommaRegex = "^(\\/[^ \\#*,?\\[\\]{}=]+)((?:=\"[^\"]+\")|(?:=[^\\s\",]+)){0,1}((?:(?:,\"[^\"]+\")|(?:,[^\\s\"=,]+))*)"
