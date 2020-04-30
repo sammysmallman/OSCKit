@@ -5,9 +5,9 @@
         "package": "CocoaAsyncSocket",
         "repositoryURL": "https://github.com/robbiehanson/CocoaAsyncSocket",
         "state": {
-          "branch": "master",
-          "revision": "ea517e0cc1b33b4f706a20f521ed298adbb05378",
-          "version": null
+          "branch": null,
+          "revision": "0e00c967a010fc43ce528bd633d032f17158d393",
+          "version": "7.6.4"
         }
       }
     ]
