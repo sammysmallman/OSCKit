@@ -8,10 +8,22 @@ Added features include:
  * Multicasting - Servers can join & leave multicast groups.
  * OSC 1.0 & 1.1 Stream Framing.
 
-For convenience, I've included a few public domain source files, Thanks and curiosity should rightfully be directed towards them:
+## Installation
 
-[CocoaAsyncSocket](https://github.com/robbiehanson/CocoaAsyncSocket).  
-[Swift-Netutils](https://github.com/svdo/swift-netutils).
+#### Xcode 11+
+[Add the package dependency](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) to your Xcode project using the following repository URL: 
+``` 
+https://github.com/SammyTheHand/OSCKit
+```
+#### Swift Package Manager
+
+Add the package dependency to your Package.swift and depend on "StampKit" in the necessary targets:
+
+```  swift
+dependencies: [
+    .package(url: "https://github.com/SammyTheHand/OSCKit", from: "1.0.0")
+]
+```
 
 ## Quick Start
 ### OSC Client
@@ -64,3 +76,14 @@ Send a message
 ```swift
 client.send(packet: message)
 ```
+
+## Authors
+
+**Sam Smallman** - *Initial Work* - [SammyTheHand](https://github.com/sammythehand)
+
+See also the list of [contributors](https://github.com/SammyTheHand/OSCKit/graphs/contributors) who participated in this project.
+
+## Acknowledgments
+
+* Socket library dependency [CocoaSyncSocket](https://github.com/robbiehanson/CocoaAsyncSocket)
+* Network Interface library dependency [Swift-Netutils](https://github.com/svdo/swift-netutils).
