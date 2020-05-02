@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="osckit-icon.svg" width="256" align="middle" alt=“StampKit”/>
+</p>
+
 # OSCKit
 A Swift framework for sending, receiving, and parsing OSC messages &amp; bundles.
 
