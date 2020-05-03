@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="osckit-icon.svg" width="256" align="middle" alt=“OSCKit”/>
+</p>
+
 # OSCKit
 A Swift framework for sending, receiving, and parsing OSC messages &amp; bundles.
 
@@ -17,7 +21,7 @@ https://github.com/SammyTheHand/OSCKit
 ```
 #### Swift Package Manager
 
-Add the package dependency to your Package.swift and depend on "StampKit" in the necessary targets:
+Add the package dependency to your Package.swift and depend on "OSCKit" in the necessary targets:
 
 ```  swift
 dependencies: [
