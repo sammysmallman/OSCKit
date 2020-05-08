@@ -38,7 +38,6 @@ public class OSCMessage: OSCPacket {
     public var replySocket: Socket? = nil
     
     public init(messageWithAddressPattern addressPattern: String, arguments: [Any]) {
-//        self.replySocket = replySocket
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
@@ -102,6 +101,17 @@ public class OSCMessage: OSCPacket {
         self.arguments = newArguments
         self.typeTagString = newTypeTagString
         self.argumentTypes = types
+    }
+    
+    public func readdress(to addressPattern: String) {
+        if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
+            self.addressPattern = "/"
+        } else {
+            self.addressPattern = addressPattern
+        }
+        var parts = self.addressPattern.components(separatedBy: "/")
+        parts.removeFirst()
+        self.addressParts = parts
     }
     
     public func packetData()->Data {
