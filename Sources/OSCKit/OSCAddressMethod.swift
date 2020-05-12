@@ -54,4 +54,18 @@ public struct OSCAddressMethod: Hashable, Equatable {
         return parts[index] == part || parts[index] == "*"
     }
 
+    // MARK:- Pattern Matching
+    static func matches(for addressPattern: String, inAddressSpace addressSpace: Set<OSCAddressMethod>) -> Set<OSCAddressMethod> {
+        var parts = addressPattern.components(separatedBy: "/")
+        parts.removeFirst()
+        var matchedAddresses: Set<OSCAddressMethod> = addressSpace
+        // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
+        matchedAddresses = matchedAddresses.filter({ parts.count == $0.parts.count })
+        // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
+        for (index, part) in parts.enumerated() {
+            matchedAddresses = matchedAddresses.filter({ $0.matches(part: part, atIndex: index) })
+        }
+        return matchedAddresses
+    }
+
 }
