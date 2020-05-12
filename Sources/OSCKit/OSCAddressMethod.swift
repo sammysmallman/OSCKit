@@ -26,7 +26,7 @@
 
 import Foundation
 
-struct OSCAddressMethod: Hashable, Equatable {
+public struct OSCAddressMethod: Hashable, Equatable {
     
     let addressPattern: String
     let parts: [String]
