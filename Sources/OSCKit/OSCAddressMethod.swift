@@ -28,9 +28,9 @@ import Foundation
 
 public struct OSCAddressMethod: Hashable, Equatable {
     
-    let addressPattern: String
-    let parts: [String]
-    let completion: (OSCMessage) -> ()
+    public let addressPattern: String
+    public let parts: [String]
+    public let completion: (OSCMessage) -> ()
     
     public init(with addressPattern: String, andCompletionHandler completion: @escaping (OSCMessage) -> ()) {
         self.addressPattern = addressPattern
