@@ -32,7 +32,7 @@ public struct OSCAddressMethod: Hashable, Equatable {
     let parts: [String]
     let completion: (OSCMessage) -> ()
     
-    init(with addressPattern: String, andCompletionHandler completion: @escaping (OSCMessage) -> ()) {
+    public init(with addressPattern: String, andCompletionHandler completion: @escaping (OSCMessage) -> ()) {
         self.addressPattern = addressPattern
         var addressParts = addressPattern.components(separatedBy: "/")
         addressParts.removeFirst()
