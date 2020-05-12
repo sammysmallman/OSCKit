@@ -55,7 +55,7 @@ public struct OSCAddressMethod: Hashable, Equatable {
     }
 
     // MARK:- Pattern Matching
-    static func matches(for addressPattern: String, inAddressSpace addressSpace: Set<OSCAddressMethod>) -> Set<OSCAddressMethod> {
+    public static func matches(for addressPattern: String, inAddressSpace addressSpace: Set<OSCAddressMethod>) -> Set<OSCAddressMethod> {
         var parts = addressPattern.components(separatedBy: "/")
         parts.removeFirst()
         var matchedAddresses: Set<OSCAddressMethod> = addressSpace
