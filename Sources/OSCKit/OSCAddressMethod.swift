@@ -40,16 +40,16 @@ public struct OSCAddressMethod: Hashable, Equatable {
         self.completion = completion
     }
     
-    static func == (lhs: OSCAddressMethod, rhs: OSCAddressMethod) -> Bool {
+    public static func == (lhs: OSCAddressMethod, rhs: OSCAddressMethod) -> Bool {
         return lhs.addressPattern == rhs.addressPattern
     }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(addressPattern)
     }
     
     // "/a/b/c/d/e" is equal to "/a/b/c/d/e" or "/a/b/c/d/*".
-    func matches(part: String, atIndex index: Int) -> Bool {
+    public func matches(part: String, atIndex index: Int) -> Bool {
         guard parts.indices.contains(index) else { return false }
         return parts[index] == part || parts[index] == "*"
     }
