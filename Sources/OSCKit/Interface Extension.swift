@@ -26,6 +26,7 @@
 
 import Foundation
 import SystemConfiguration
+import NetUtils
 
 extension Interface {
     #if os(OSX)

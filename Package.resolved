@@ -9,6 +9,15 @@
           "revision": "0e00c967a010fc43ce528bd633d032f17158d393",
           "version": "7.6.4"
         }
+      },
+      {
+        "package": "NetUtils",
+        "repositoryURL": "https://github.com/svdo/swift-netutils",
+        "state": {
+          "branch": null,
+          "revision": "d1251a380f41088547e4cfc8dc718a90c861a42b",
+          "version": "4.1.0"
+        }
       }
     ]
   },
