@@ -17,7 +17,7 @@ Added features include:
 #### Xcode 11+
 [Add the package dependency](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) to your Xcode project using the following repository URL: 
 ``` 
-https://github.com/SammyTheHand/OSCKit
+https://github.com/SammySmallman/OSCKit
 ```
 #### Swift Package Manager
 
@@ -25,7 +25,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammyTheHand/OSCKit", from: "1.0.0")
+    .package(url: "https://github.com/SammySmallman/OSCKit", from: "1.0.0")
 ]
 ```
 
@@ -83,7 +83,7 @@ client.send(packet: message)
 
 ## Authors
 
-**Sam Smallman** - *Initial Work* - [SammyTheHand](https://github.com/sammythehand)
+**Sammy Smallman** - *Initial Work* - [SammySmallman](https://github.com/sammysmallman)
 
 See also the list of [contributors](https://github.com/SammyTheHand/OSCKit/graphs/contributors) who participated in this project.
 
