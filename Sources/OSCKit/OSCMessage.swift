@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Sam Smallman. http://sammy.io
+//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ public class OSCMessage: OSCPacket {
     public let argumentTypes: [OSCArgument]
     public var replySocket: Socket? = nil
     
-    public init(messageWithAddressPattern addressPattern: String, arguments: [Any]) {
+    public init(with addressPattern: String, arguments: [Any]) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
@@ -94,7 +94,6 @@ public class OSCMessage: OSCPacket {
                     types.append(.oscImpulse)
                 default: break
                 }
-                continue
             }
             newArguments.append(argument as Any)
         }

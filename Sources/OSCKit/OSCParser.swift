@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2017 Sam Smallman. http://sammy.io
+//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -250,7 +250,7 @@ public class OSCParser {
                 }
             }
         }
-        return OSCMessage(messageWithAddressPattern: addressPattern, arguments: arguments)
+        return OSCMessage(with: addressPattern, arguments: arguments)
     }
     
     private func parseOSCBundle(with data: Data) throws -> OSCBundle {
