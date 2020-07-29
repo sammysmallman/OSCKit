@@ -86,7 +86,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
     }
     
     private func setBroadcastFlag() {
-        guard let socket = socket, interface = interface, !useTCP else { return }
+        guard let socket = socket, let interface = interface, !useTCP else { return }
         var set = false
         for i in Interface.allInterfaces() where i.name == interface && i.broadcastAddress == host {
             set = true
@@ -95,7 +95,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         do {
             try socket.udpSocket?.enableBroadcast(set)
         } catch {
-            debugPrint("Could not \(set == true ?? "Enable" : "Disable") the broadcast flag on UDP Socket.")
+            debugPrint("Could not \(set == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
         }
     }
     
