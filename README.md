@@ -29,6 +29,10 @@ dependencies: [
 ]
 ```
 
+#### App Sandbox
+- Enable Incoming Connections(Server)
+- Enable Outgoing Connections(Client)
+
 ## Quick Start
 ### OSC Client
 #### Step 1
