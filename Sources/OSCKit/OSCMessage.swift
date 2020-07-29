@@ -30,15 +30,14 @@ import Foundation
 
 public class OSCMessage: OSCPacket {
     
-    public let addressPattern: String
-    public let addressParts: [String]  // Address Parts are components seperated by "/"
+    public private(set) var addressPattern: String
+    public private(set) var addressParts: [String]  // Address Parts are components seperated by "/"
     public let arguments: [Any]
     public let typeTagString: String
     public let argumentTypes: [OSCArgument]
     public var replySocket: Socket? = nil
     
     public init(messageWithAddressPattern addressPattern: String, arguments: [Any]) {
-//        self.replySocket = replySocket
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
@@ -102,6 +101,17 @@ public class OSCMessage: OSCPacket {
         self.arguments = newArguments
         self.typeTagString = newTypeTagString
         self.argumentTypes = types
+    }
+    
+    public func readdress(to addressPattern: String) {
+        if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
+            self.addressPattern = "/"
+        } else {
+            self.addressPattern = addressPattern
+        }
+        var parts = self.addressPattern.components(separatedBy: "/")
+        parts.removeFirst()
+        self.addressParts = parts
     }
     
     public func packetData()->Data {

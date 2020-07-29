@@ -257,11 +257,6 @@ public class Socket {
                     debugPrint("Warning: \(socket) unable to bind interface")
                 }
             }
-            do {
-                try socket.enableBroadcast(true)
-            } catch {
-                debugPrint("Warning: \(socket) unable to enable UDP broadcast")
-            }
             if let aHost = host {
                 socket.send(packet.packetData(), toHost: aHost, port: self.port, withTimeout: timeout, tag: 0)
                 socket.closeAfterSending()
