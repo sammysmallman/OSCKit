@@ -25,7 +25,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", from: "1.0.0")
+    .package(url: "https://github.com/SammySmallman/OSCKit", from: "2.0.0")
 ]
 ```
 
@@ -77,7 +77,14 @@ func take(bundle: OSCBundle) {
 #### Step 4
 Create a message
 ```swift
-let message = OSCMessage(messageWithAddressPattern: "/stamp/remind", arguments: [1, 3.142, "aStringArgument"])
+let message = OSCMessage(with: "/osc/kit", arguments: [1,
+                                                    3.142,
+                                                    "hello world!",
+                                                    Data(count: 2),
+                                                    OSCArgument.oscTrue,
+                                                    OSCArgument.oscFalse,
+                                                    OSCArgument.oscNil,
+                                                    OSCArgument.oscImpulse])
 ```
 #### Step 5
 Send a message
