@@ -30,8 +30,8 @@ dependencies: [
 ```
 
 #### App Sandbox Network Settings
-- Enable Incoming Connections(Server)
-- Enable Outgoing Connections(Client)
+- Enable Incoming Connections (Server)
+- Enable Outgoing Connections (Client)
 
 ## Quick Start
 ### OSC Client
