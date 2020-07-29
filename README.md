@@ -29,7 +29,7 @@ dependencies: [
 ]
 ```
 
-#### App Sandbox
+#### App Sandbox Network Settings
 - Enable Incoming Connections(Server)
 - Enable Outgoing Connections(Client)
 
