@@ -114,6 +114,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         sock.interface = self.interface
         sock.host = self.host
         sock.port = self.port
+        setBroadcastFlag()
     }
     
     internal func destroySocket() {
