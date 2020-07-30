@@ -226,24 +226,32 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     
     public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
         #if Server_Debug
-            debugPrint("UDP Socket: \(sock) didDisconnect, withError: \(String(describing: err))")
+            debugPrint("TCP Socket: \(sock) didDisconnect, withError: \(String(describing: err))")
         #endif
-        
-        var keyOfDisconnectingSocket: Any?
-        for key in self.activeTCPSockets.allKeys {
-            if let socket = self.activeTCPSockets.object(forKey: key) as? Socket, socket.tcpSocket == sock {
-                keyOfDisconnectingSocket = key
-                break
+        if sock != tcpSocket.tcpSocket {
+            var keyOfDisconnectingSocket: Any?
+            for key in self.activeTCPSockets.allKeys {
+                if let socket = self.activeTCPSockets.object(forKey: key) as? Socket, socket.tcpSocket == sock {
+                    keyOfDisconnectingSocket = key
+                    break
+                }
             }
-        }
-        
-        if let key = keyOfDisconnectingSocket {
-            self.activeTCPSockets.removeObject(forKey: key)
-            self.activeData.removeObject(forKey: key)
-            self.activeState.removeObject(forKey: key)
+            
+            if let key = keyOfDisconnectingSocket {
+                self.activeTCPSockets.removeObject(forKey: key)
+                self.activeData.removeObject(forKey: key)
+                self.activeState.removeObject(forKey: key)
+            } else {
+                #if Server_Debug
+                    debugPrint("Error: Server couldn't find the Socket associated with the disconnecting TCP Socket")
+                #endif
+            }
         } else {
-            debugPrint("Error: Server couldn't find the Socket associated with the disconnecting TCP Socket")
+            #if Server_Debug
+                debugPrint("Server disconnecting its own listening TCP Socket")
+            #endif
         }
+
     }
     
     public func socketDidSecure(_ sock: GCDAsyncSocket) {
