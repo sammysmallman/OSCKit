@@ -236,7 +236,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
                     break
                 }
             }
-            
+        
             if let key = keyOfDisconnectingSocket {
                 self.activeTCPSockets.removeObject(forKey: key)
                 self.activeData.removeObject(forKey: key)
@@ -294,6 +294,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
         
         let rawReplySocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
         let socket = Socket(with: rawReplySocket)
+        socket.interface = interface
         socket.host = GCDAsyncUdpSocket.host(fromAddress: address)
         socket.port = self.udpReplyPort
         guard let packetDestination = delegate else { return }
