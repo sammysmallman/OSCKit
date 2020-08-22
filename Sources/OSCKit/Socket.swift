@@ -28,6 +28,7 @@
 
 import Foundation
 import CocoaAsyncSocket
+import NetUtils
 
 extension Socket: CustomStringConvertible {
     public var description: String {
@@ -250,6 +251,12 @@ public class Socket {
     public func sendUDP(packet: OSCPacket) {
         if let socket = self.udpSocket, !packet.packetData().isEmpty {
             if let aInterface = self.interface {
+                let enableBroadcast = Interface.allInterfaces().contains(where: { $0.name == interface && $0.broadcastAddress == host })
+                do {
+                    try socket.enableBroadcast(enableBroadcast)
+                } catch {
+                    debugPrint("Could not \(enableBroadcast == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
+                }
                 do {
                     // Port 0 means that the OS should choose a random ephemeral port for this socket.
                    try socket.bind(toPort: 0, interface: aInterface)
