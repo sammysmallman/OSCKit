@@ -85,7 +85,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         super.init()
     }
     
-    private func setBroadcastFlag() {
+    public func setBroadcastFlag() {
         guard let socket = socket, let interface = interface, !useTCP else { return }
         var set = false
         for i in Interface.allInterfaces() where i.name == interface && i.broadcastAddress == host {
