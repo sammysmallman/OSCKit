@@ -66,7 +66,6 @@ public class OSCAddressSpace {
         let matchedAddressesWithEqualPartsCount = matchedAddresses.filter({ parts.count == $0.method.parts.count })
         matchedAddresses = matchedAddressesWithEqualPartsCount
         // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
-        matchedAddresses.forEach({ print($0.method)})
         for (index, part) in parts.enumerated() {
             matchedAddressesWithEqualPartsCount.forEach { match in
                 switch match.method.match(part: part, atIndex: index) {
@@ -77,7 +76,6 @@ public class OSCAddressSpace {
                 }
             }
         }
-        matchedAddresses.forEach({ print("\($0.method.addressPattern) : Strings=\($0.strings) : Wildcards=\($0.wildcards)")})
         switch priority {
         case .none: return Set(matchedAddresses.map { $0.method })
         case .string:
@@ -93,7 +91,6 @@ public class OSCAddressSpace {
     
     public func complete(with message: OSCMessage, priority: OSCAddressSpaceMatchPriority = .none) -> Bool {
         let methods = matches(for: message.addressPattern, priority: priority)
-        methods.forEach({ print($0.addressPattern)})
         guard !methods.isEmpty else { return false }
         methods.forEach({ $0.completion(message) })
         return true
