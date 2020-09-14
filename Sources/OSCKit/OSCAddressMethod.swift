@@ -55,9 +55,10 @@ public struct OSCAddressMethod: Hashable, Equatable {
     }
     
     // "/a/b/c/d/e" is equal to "/a/b/c/d/e" or "/a/b/c/d/*".
-    public func matches(part: String, atIndex index: Int) -> OSCAddressPatternMatch {
+    public func match(part: String, atIndex index: Int) -> OSCAddressPatternMatch {
         guard parts.indices.contains(index) else { return .different }
-        switch parts[index] {
+        let match = parts[index]
+        switch match {
         case part: return .string
         case "*": return .wildcard
         default: return .different

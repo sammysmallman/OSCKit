@@ -63,19 +63,21 @@ public class OSCAddressSpace {
         parts.removeFirst()
         var matchedAddresses: [OSCAddressMethodMatch] = methods.map { OSCAddressMethodMatch(method: $0) }
         // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
-        let matchedNumberOfParts = matchedAddresses.filter({ parts.count == $0.method.parts.count })
+        let matchedAddressesWithEqualPartsCount = matchedAddresses.filter({ parts.count == $0.method.parts.count })
+        matchedAddresses = matchedAddressesWithEqualPartsCount
         // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
+        matchedAddresses.forEach({ print($0.method)})
         for (index, part) in parts.enumerated() {
-            matchedNumberOfParts.forEach { match in
-                switch match.method.matches(part: part, atIndex: index) {
+            matchedAddressesWithEqualPartsCount.forEach { match in
+                switch match.method.match(part: part, atIndex: index) {
                 case .string: match.strings += 1
                 case .wildcard: match.wildcards += 1
                 case .different:
-                    matchedAddresses = matchedAddresses.filter({ match != $0 })
+                    matchedAddresses = matchedAddresses.filter { match != $0 } 
                 }
             }
         }
-        
+        matchedAddresses.forEach({ print("\($0.method.addressPattern) : Strings=\($0.strings) : Wildcards=\($0.wildcards)")})
         switch priority {
         case .none: return Set(matchedAddresses.map { $0.method })
         case .string:
@@ -91,6 +93,7 @@ public class OSCAddressSpace {
     
     public func complete(with message: OSCMessage, priority: OSCAddressSpaceMatchPriority = .none) -> Bool {
         let methods = matches(for: message.addressPattern, priority: priority)
+        methods.forEach({ print($0.addressPattern)})
         guard !methods.isEmpty else { return false }
         methods.forEach({ $0.completion(message) })
         return true
