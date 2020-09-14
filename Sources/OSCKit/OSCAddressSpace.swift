@@ -28,7 +28,7 @@ import Foundation
 
 public class OSCAddressSpace {
     
-    var methods: Set<OSCAddressMethod> = []
+    public var methods: Set<OSCAddressMethod> = []
     
     public init(addressSpace: Set<OSCAddressMethod> = []) {
         self.methods = addressSpace
