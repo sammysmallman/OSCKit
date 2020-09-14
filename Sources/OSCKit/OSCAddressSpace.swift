@@ -1,5 +1,5 @@
 //
-//  OSCAddressMethod.swift
+//  OSCAddressSpace.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
@@ -26,32 +26,31 @@
 
 import Foundation
 
-public struct OSCAddressMethod: Hashable, Equatable {
+public class OSCAddressSpace {
     
-    public let addressPattern: String
-    public let parts: [String]
-    public let completion: (OSCMessage) -> ()
+    var addressSpace: Set<OSCAddressMethod> = []
     
-    public init(with addressPattern: String, andCompletionHandler completion: @escaping (OSCMessage) -> ()) {
-        self.addressPattern = addressPattern
-        var addressParts = addressPattern.components(separatedBy: "/")
-        addressParts.removeFirst()
-        self.parts = addressParts
-        self.completion = completion
+    // MARK:- Pattern Matching
+    private func matches(for addressPattern: String) -> Set<OSCAddressMethod> {
+        var parts = addressPattern.components(separatedBy: "/")
+        parts.removeFirst()
+        var matchedAddresses: Set<OSCAddressMethod> = addressSpace
+        // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
+        matchedAddresses = matchedAddresses.filter({ parts.count == $0.parts.count })
+        // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
+        for (index, part) in parts.enumerated() {
+            matchedAddresses = matchedAddresses.filter({ $0.matches(part: part, atIndex: index) })
+        }
+        return matchedAddresses
     }
     
-    public static func == (lhs: OSCAddressMethod, rhs: OSCAddressMethod) -> Bool {
-        return lhs.addressPattern == rhs.addressPattern
+    public func complete(with message: OSCMessage) -> Bool {
+        let methods = matches(for: message.addressPattern)
+        guard !methods.isEmpty else { return false }
+        methods.forEach({ $0.completion(message) })
+        return true
     }
     
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(addressPattern)
-    }
-    
-    // "/a/b/c/d/e" is equal to "/a/b/c/d/e" or "/a/b/c/d/*".
-    public func matches(part: String, atIndex index: Int) -> Bool {
-        guard parts.indices.contains(index) else { return false }
-        return parts[index] == part || parts[index] == "*"
-    }
-
 }
+
+
