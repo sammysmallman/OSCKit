@@ -26,6 +26,12 @@
 
 import Foundation
 
+public enum OSCAddressPatternMatch {
+    case string
+    case different
+    case wildcard
+}
+
 public struct OSCAddressMethod: Hashable, Equatable {
     
     public let addressPattern: String
@@ -49,9 +55,13 @@ public struct OSCAddressMethod: Hashable, Equatable {
     }
     
     // "/a/b/c/d/e" is equal to "/a/b/c/d/e" or "/a/b/c/d/*".
-    public func matches(part: String, atIndex index: Int) -> Bool {
-        guard parts.indices.contains(index) else { return false }
-        return parts[index] == part || parts[index] == "*"
+    public func matches(part: String, atIndex index: Int) -> OSCAddressPatternMatch {
+        guard parts.indices.contains(index) else { return .different }
+        switch parts[index] {
+        case part: return .string
+        case "*": return .wildcard
+        default: return .different
+        }
     }
 
 }

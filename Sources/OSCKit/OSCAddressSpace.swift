@@ -26,6 +26,29 @@
 
 import Foundation
 
+public class OSCAddressMethodMatch: Equatable {
+    
+    public static func == (lhs: OSCAddressMethodMatch, rhs: OSCAddressMethodMatch) -> Bool {
+        return lhs.method.addressPattern == rhs.method.addressPattern
+    }
+    
+    let method: OSCAddressMethod
+    var strings: Int
+    var wildcards: Int
+    
+    init(method: OSCAddressMethod, strings: Int = 0, wildcards: Int = 0) {
+        self.method = method
+        self.strings = strings
+        self.wildcards = wildcards
+    }
+}
+
+public enum OSCAddressSpaceMatchPriority {
+    case string
+    case wildcard
+    case none
+}
+
 public class OSCAddressSpace {
     
     public var methods: Set<OSCAddressMethod> = []
@@ -35,17 +58,35 @@ public class OSCAddressSpace {
     }
     
     // MARK:- Pattern Matching
-    private func matches(for addressPattern: String) -> Set<OSCAddressMethod> {
+    private func matches(for addressPattern: String, priority: OSCAddressSpaceMatchPriority = .none) -> Set<OSCAddressMethod> {
         var parts = addressPattern.components(separatedBy: "/")
         parts.removeFirst()
-        var matchedAddresses: Set<OSCAddressMethod> = methods
+        var matchedAddresses: [OSCAddressMethodMatch] = methods.map { OSCAddressMethodMatch(method: $0) }
         // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
-        matchedAddresses = matchedAddresses.filter({ parts.count == $0.parts.count })
+        let matchedNumberOfParts = matchedAddresses.filter({ parts.count == $0.method.parts.count })
         // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
         for (index, part) in parts.enumerated() {
-            matchedAddresses = matchedAddresses.filter({ $0.matches(part: part, atIndex: index) })
+            matchedNumberOfParts.forEach { match in
+                switch match.method.matches(part: part, atIndex: index) {
+                case .string: match.strings += 1
+                case .wildcard: match.wildcards += 1
+                case .different:
+                    matchedAddresses = matchedAddresses.filter({ match != $0 })
+                }
+            }
         }
-        return matchedAddresses
+        
+        switch priority {
+        case .none: return Set(matchedAddresses.map { $0.method })
+        case .string:
+            let sorted = matchedAddresses.sorted { $0.strings > $1.strings }.map { $0.method }
+            guard let first = sorted.first else { return [] }
+            return [first]
+        case .wildcard:
+            let sorted = matchedAddresses.sorted { $0.wildcards > $1.wildcards }.map { $0.method }
+            guard let first = sorted.first else { return [] }
+            return [first]
+        }
     }
     
     public func complete(with message: OSCMessage) -> Bool {
