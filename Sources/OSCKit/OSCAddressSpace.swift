@@ -28,13 +28,17 @@ import Foundation
 
 public class OSCAddressSpace {
     
-    var addressSpace: Set<OSCAddressMethod> = []
+    var methods: Set<OSCAddressMethod> = []
+    
+    public init(addressSpace: Set<OSCAddressMethod> = []) {
+        self.methods = addressSpace
+    }
     
     // MARK:- Pattern Matching
     private func matches(for addressPattern: String) -> Set<OSCAddressMethod> {
         var parts = addressPattern.components(separatedBy: "/")
         parts.removeFirst()
-        var matchedAddresses: Set<OSCAddressMethod> = addressSpace
+        var matchedAddresses: Set<OSCAddressMethod> = methods
         // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
         matchedAddresses = matchedAddresses.filter({ parts.count == $0.parts.count })
         // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
