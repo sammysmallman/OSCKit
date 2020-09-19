@@ -34,20 +34,20 @@ public class OSCBundle: OSCPacket {
     public var elements: [OSCPacket] = []
     public var replySocket: Socket?
     
-    public init(bundleWithMessages messages: [OSCMessage]) {
+    public init(with elements: [OSCPacket]) {
         // Bundle made with messages and a immediate OSC Time Tag.
-        bundle(withElements: messages, timeTag: OSCTimeTag.init(), replySocket: nil)
+        bundle(with: elements, timeTag: OSCTimeTag.init(), replySocket: nil)
     }
     
-    public init(bundleWithElements elements: [OSCPacket], timeTag: OSCTimeTag) {
-        bundle(withElements: elements, timeTag: timeTag, replySocket: nil)
+    public init(with elements: [OSCPacket], timeTag: OSCTimeTag) {
+        bundle(with: elements, timeTag: timeTag, replySocket: nil)
     }
     
-    public init(bundleWithElements elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
-        bundle(withElements: elements, timeTag: timeTag, replySocket: replySocket)
+    public init(with elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
+        bundle(with: elements, timeTag: timeTag, replySocket: replySocket)
     }
     
-    private func bundle(withElements elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
+    private func bundle(with elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
         self.timeTag = timeTag
         self.elements = elements
         self.replySocket = replySocket
@@ -55,9 +55,21 @@ public class OSCBundle: OSCPacket {
     
     public func packetData()->Data {
         var result = "#bundle".oscStringData()
-        result.append(self.timeTag.oscTimeTagData())
+        let timeTagData = self.timeTag.oscTimeTagData()
+        result.append(timeTagData)
         for element in elements {
-            result.append(element.packetData())
+            if element is OSCMessage {
+                let data = (element as! OSCMessage).packetData()
+                let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
+                result.append(size)
+                result.append(data)
+            }
+            if element is OSCBundle {
+                let data = (element as! OSCBundle).packetData()
+                let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
+                result.append(size)
+                result.append(data)
+            }
         }
         return result
     }

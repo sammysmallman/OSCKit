@@ -249,7 +249,7 @@ public class Socket {
     }
     
     public func sendUDP(packet: OSCPacket) {
-        if let socket = self.udpSocket, !packet.packetData().isEmpty {
+        if let socket = self.udpSocket {
             if let aInterface = self.interface {
                 let enableBroadcast = Interface.allInterfaces().contains(where: { $0.name == interface && $0.broadcastAddress == host })
                 do {
