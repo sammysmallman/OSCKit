@@ -267,12 +267,12 @@ public class OSCParser {
                 let size = Int32(data.count - startIndex)
                 do {
                     let elements = try parseOSCBundleElements(with: 0, data: bundleData, andSize: size)
-                    return OSCBundle(bundleWithElements: elements, timeTag: timeTag)
+                    return OSCBundle(with: elements, timeTag: timeTag)
                 } catch {
                     throw error
                 }
             } else {
-                return OSCBundle(bundleWithElements: [], timeTag: timeTag)
+                return OSCBundle(with: [], timeTag: timeTag)
             }
         } else {
             throw OSCParserError.unrecognisedData
@@ -309,12 +309,12 @@ public class OSCParser {
                     let bundleData = data.subdata(in: startIndex..<startIndex + Int(elementSize) - 16)
                     do {
                         let bundleElements = try parseOSCBundleElements(with: index, data: bundleData, andSize: Int32(bundleData.count))
-                        elements.append(OSCBundle(bundleWithElements: bundleElements, timeTag: timeTag))
+                        elements.append(OSCBundle(with: bundleElements, timeTag: timeTag))
                     } catch {
                         throw error
                     }
                 } else {
-                    elements.append(OSCBundle(bundleWithElements: [], timeTag: timeTag))
+                    elements.append(OSCBundle(with: [], timeTag: timeTag))
                 }
             } else {
                 throw OSCParserError.unrecognisedData
