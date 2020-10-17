@@ -328,7 +328,7 @@ public class OSCParser {
     private func oscString(with buffer: Data, startIndex firstIndex: inout Int) -> String? {
         // Read the data from the start index until you hit a zero, the part before will be the string data.
         for (index, byte) in buffer[firstIndex...].enumerated() where byte == 0 {
-            guard let result = String(data: buffer[firstIndex..<(firstIndex + index)], encoding: .utf8) else { return nil }
+            guard let result = String(data: buffer[firstIndex..<(firstIndex + index)], encoding: .ascii) else { return nil }
             /* An OSC String is a sequence of non-null ASCII characters followed by a null, followed by 0-3 additional null characters to make the total number of bits a multiple of 32 Bits, 4 Bytes.
              */
             firstIndex = (4 * Int(ceil(Double(firstIndex + index + 1) / 4)))
