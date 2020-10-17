@@ -37,7 +37,7 @@ public class OSCMessage: OSCPacket {
     public let argumentTypes: [OSCArgument]
     public var replySocket: Socket? = nil
     
-    public init(with addressPattern: String, arguments: [Any]) {
+    public init(with addressPattern: String, arguments: [Any] = []) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
