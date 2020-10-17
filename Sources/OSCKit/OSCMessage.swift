@@ -157,7 +157,7 @@ public class OSCMessage: OSCPacket {
 
 extension String {
     func oscStringData()->Data {
-        var data = self.data(using: String.Encoding.ascii)!
+        var data = self.data(using: String.Encoding.utf8)!
         for _ in 1...4-data.count%4 {
             var null = UInt8(0)
             data.append(&null, count: 1)
