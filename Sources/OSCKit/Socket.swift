@@ -42,13 +42,6 @@ extension Socket: CustomStringConvertible {
 
 public class Socket {
     
-    private enum slipCharacter: Int {
-        case END = 0o0300       /* indicates end of packet */
-        case ESC = 0o0333       /* indicates byte stuffing */
-        case ESC_END = 0o0334   /* ESC ESC_END means END data byte */
-        case ESC_ESC = 0o0335   /* ESC ESC_ESC means ESC data byte */
-    }
-    
     private let timeout: TimeInterval = 3.0
     
     public private(set) var tcpSocket: GCDAsyncSocket?
@@ -208,26 +201,25 @@ public class Socket {
         socket.disconnect()
     }
     
-    public func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCParser.streamFraming) {
+    public func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCTCPStreamFraming) {
         if let socket = self.tcpSocket, !packet.packetData().isEmpty {
             switch streamFraming {
             case .SLIP:
                 // Outgoing OSC Packets are framed using the double END SLIP protocol http://www.rfc-editor.org/rfc/rfc1055.txt
-                let escENDbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_END.rawValue)]
+                let escENDbytes: [UInt8] = [SLIP_ESC, SLIP_ESC_END]
                 let escEND = UInt16(escENDbytes[0]) << 8 | UInt16(escENDbytes[1])
-                let escESCbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_ESC.rawValue)]
+                let escESCbytes: [UInt8] = [SLIP_ESC, SLIP_ESC_ESC]
                 let escESC = UInt16(escESCbytes[0]) << 8 | UInt16(escESCbytes[1])
-                let end = UInt8(slipCharacter.END.rawValue)
                 
                 var slipData = Data()
-                var endValue = end.bigEndian
+                var endValue = SLIP_END.bigEndian
                 slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
                 
                 for byte in packet.packetData() {
-                    if byte == UInt8(slipCharacter.END.rawValue) {
+                    if byte == SLIP_END {
                         var escENDValue = escEND.bigEndian
                         slipData.append(UnsafeBufferPointer(start: &escENDValue, count: 2))
-                    } else if byte == UInt8(slipCharacter.ESC.rawValue) {
+                    } else if byte == SLIP_ESC {
                         var escESCValue = escESC.bigEndian
                         slipData.append(UnsafeBufferPointer(start: &escESCValue, count: 2))
                     } else {

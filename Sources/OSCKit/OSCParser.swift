@@ -46,15 +46,7 @@ public enum OSCParserError: Error {
 
 public class OSCParser {
     
-    private let END: UInt8 = 0o0300         /* indicates end of packet */
-    private let ESC: UInt8 = 0o0333         /* indicates byte stuffing */
-    private let ESC_END: UInt8 = 0o0334     /* ESC ESC_END means END data byte */
-    private let ESC_ESC: UInt8 = 0o0335     /* ESC ESC_ESC means ESC data byte */
-    
-    public enum streamFraming {
-        case SLIP
-        case PLH
-    }
+
     
     private var plhDataBuffer: Data?
     
@@ -100,7 +92,7 @@ public class OSCParser {
         }
     }
     
-    public func translate(OSCData tcpData: Data, streamFraming: streamFraming, to data: NSMutableData, with state: NSMutableDictionary, andDestination destination: OSCPacketDestination) throws {
+    public func translate(OSCData tcpData: Data, streamFraming: OSCTCPStreamFraming, to data: NSMutableData, with state: NSMutableDictionary, andDestination destination: OSCPacketDestination) throws {
         switch streamFraming {
         case .SLIP:
             // There are two versions of OSC. OSC 1.1 frames messages using the SLIP protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
@@ -118,10 +110,10 @@ public class OSCParser {
                 if dangling_ESC {
                     state.setValue(false, forKey: "dangling_ESC")
                     switch c {
-                    case ESC_END:
-                        data.append(Data([END]))
-                    case ESC_ESC:
-                        data.append(Data([ESC]))
+                    case SLIP_ESC_END:
+                        data.append(Data([SLIP_END]))
+                    case SLIP_ESC_ESC:
+                        data.append(Data([SLIP_ESC]))
                     default:
                         /*
                         If byte is not one of these two, then we have a protocol violation.
@@ -132,7 +124,7 @@ public class OSCParser {
                     }
                 } else {
                     switch c {
-                    case END:
+                    case SLIP_END:
                         /*
                          A minor optimization: if there is no data in the packet, ignore it.
                          This is meant to avoid bothering IP with all the empty packets generated
@@ -146,15 +138,15 @@ public class OSCParser {
                         } catch {
                             throw error
                         }
-                    case ESC:
+                    case SLIP_ESC:
                         if index < tcpData.count {
                             let nextC = tcpData[index]
                             index += 1 // This is why we're using a while loop. ESC characters mean we jump forward 1.
                             switch nextC {
-                            case ESC_END:
-                                data.append(Data([END]))
-                            case ESC_ESC:
-                                data.append(Data([ESC]))
+                            case SLIP_ESC_END:
+                                data.append(Data([SLIP_END]))
+                            case SLIP_ESC_ESC:
+                                data.append(Data([SLIP_ESC]))
                             default:
                                 /*
                                 If byte is not one of these two, then we have a protocol violation.
@@ -282,7 +274,7 @@ public class OSCParser {
                     throw error
                 }
             } else {
-                return OSCBundle(with: [], timeTag: timeTag)
+                return OSCBundle(timeTag: timeTag)
             }
         } else {
             throw OSCParserError.unrecognisedData
@@ -324,7 +316,7 @@ public class OSCParser {
                         throw error
                     }
                 } else {
-                    elements.append(OSCBundle(with: [], timeTag: timeTag))
+                    elements.append(OSCBundle(timeTag: timeTag))
                 }
             } else {
                 throw OSCParserError.unrecognisedData

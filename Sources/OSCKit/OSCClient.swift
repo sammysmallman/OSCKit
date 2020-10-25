@@ -78,7 +78,7 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
             sock.port = port
         }
     }
-    public var streamFraming: OSCParser.streamFraming = .SLIP
+    public var streamFraming: OSCTCPStreamFraming = .SLIP
     
     public override init() {
         super.init()

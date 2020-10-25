@@ -63,7 +63,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
             }
         }
     }
-    public var streamFraming: OSCParser.streamFraming = .SLIP
+    public var streamFraming: OSCTCPStreamFraming = .SLIP
     
     private var udpReplyPort: UInt16 = 0
     public var delegate: OSCPacketDestination?

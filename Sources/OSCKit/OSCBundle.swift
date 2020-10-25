@@ -34,20 +34,20 @@ public class OSCBundle: OSCPacket {
     public var elements: [OSCPacket] = []
     public var replySocket: Socket?
     
-    public init(with elements: [OSCPacket]) {
+    public init(with elements: [OSCPacket] = []) {
         // Bundle made with messages and a immediate OSC Time Tag.
         bundle(with: elements, timeTag: OSCTimeTag.init(), replySocket: nil)
     }
     
-    public init(with elements: [OSCPacket], timeTag: OSCTimeTag) {
+    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag) {
         bundle(with: elements, timeTag: timeTag, replySocket: nil)
     }
     
-    public init(with elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
+    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: Socket?) {
         bundle(with: elements, timeTag: timeTag, replySocket: replySocket)
     }
     
-    private func bundle(with elements: [OSCPacket], timeTag: OSCTimeTag, replySocket: Socket?) {
+    private func bundle(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: Socket?) {
         self.timeTag = timeTag
         self.elements = elements
         self.replySocket = replySocket
