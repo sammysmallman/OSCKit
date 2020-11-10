@@ -9,6 +9,7 @@ import Foundation
 
 // http://www.rfc-editor.org/rfc/rfc1055.txt
 
+// Integer literals can be written as an octal number with a 0o prefix.
 internal let SLIP_END: UInt8 = 0o0300         /* indicates end of packet */
 internal let SLIP_ESC: UInt8 = 0o0333         /* indicates byte stuffing */
 internal let SLIP_ESC_END: UInt8 = 0o0334     /* ESC ESC_END means END data byte */

@@ -111,9 +111,9 @@ public class OSCParser {
                     state.setValue(false, forKey: "dangling_ESC")
                     switch c {
                     case SLIP_ESC_END:
-                        data.append(Data([SLIP_END]))
+                        data.append(SLIP_END.data)
                     case SLIP_ESC_ESC:
-                        data.append(Data([SLIP_ESC]))
+                        data.append(SLIP_ESC.data)
                     default:
                         /*
                         If byte is not one of these two, then we have a protocol violation.
@@ -140,13 +140,17 @@ public class OSCParser {
                         }
                     case SLIP_ESC:
                         if index < tcpData.count {
-                            let nextC = tcpData[index]
+                            let nextC = tcpData[index] // We added 1 to the index when moving into this loop so this will be the next char along from the char that we got at the beginning of this loop.
                             index += 1 // This is why we're using a while loop. ESC characters mean we jump forward 1.
+                            /*
+                             We're essentially checking whether two bytes correctly represent an escaped character.
+                             If they do then we're adding the single escaped character to the data and then treating it as if we received a single byte by skipping over the extra escaped one.
+                             */
                             switch nextC {
                             case SLIP_ESC_END:
-                                data.append(Data([SLIP_END]))
+                                data.append(SLIP_END.data)
                             case SLIP_ESC_ESC:
-                                data.append(Data([SLIP_ESC]))
+                                data.append(SLIP_ESC.data)
                             default:
                                 /*
                                 If byte is not one of these two, then we have a protocol violation.
@@ -202,6 +206,7 @@ public class OSCParser {
         guard let addressPattern = oscString(with: data, startIndex: &firstIndex) else {
             throw OSCParserError.cantParseAddressPattern
         }
+        print("Address Pattern: \(addressPattern)")
         guard let typeTagString = oscString(with: data, startIndex: &firstIndex) else {
             throw OSCParserError.cantParseTypeTagString
         }

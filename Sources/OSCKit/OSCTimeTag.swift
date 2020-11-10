@@ -36,25 +36,12 @@ public class OSCTimeTag {
     public private(set) var immediate: Bool
     
     public init?(withData data: Data) {
-        if data.count == 8 {
-            let secondsNumber = data.subdata(in: data.startIndex ..< data.startIndex + 4).withUnsafeBytes { (pointer: UnsafePointer<UInt32>) -> UInt32 in
-                return pointer.pointee.byteSwapped
-            }
-            let fractionNumber = data.subdata(in: data.startIndex + 4 ..< data.startIndex + 8 ).withUnsafeBytes { (pointer: UnsafePointer<UInt32>) -> UInt32 in
-                return pointer.pointee.byteSwapped
-            }
-            self.seconds = secondsNumber
-            self.fraction = fractionNumber
-            if secondsNumber == 0 && fractionNumber == 1 {
-                self.immediate = true
-            } else {
-                self.immediate = false
-            }
-
-        } else {
-            debugPrint("OSC TimeTag Data with incorrect number of bytes.")
-            return nil
-        }
+        guard data.count == 8 else { return nil }
+        let secondsNumber = data.subdata(in: data.startIndex ..< data.startIndex + 4).withUnsafeBytes { $0.load(as: UInt32.self) }.byteSwapped
+        let fractionNumber = data.subdata(in: data.startIndex + 4 ..< data.startIndex + 8).withUnsafeBytes { $0.load(as: UInt32.self) }.byteSwapped
+        self.seconds = secondsNumber
+        self.fraction = fractionNumber
+        self.immediate = secondsNumber == 0 && fractionNumber == 1
     }
     
     public init(withDate date: Date) {

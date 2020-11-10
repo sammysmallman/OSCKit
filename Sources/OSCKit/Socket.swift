@@ -206,29 +206,34 @@ public class Socket {
             switch streamFraming {
             case .SLIP:
                 // Outgoing OSC Packets are framed using the double END SLIP protocol http://www.rfc-editor.org/rfc/rfc1055.txt
-                let escENDbytes: [UInt8] = [SLIP_ESC, SLIP_ESC_END]
-                let escEND = UInt16(escENDbytes[0]) << 8 | UInt16(escENDbytes[1])
-                let escESCbytes: [UInt8] = [SLIP_ESC, SLIP_ESC_ESC]
-                let escESC = UInt16(escESCbytes[0]) << 8 | UInt16(escESCbytes[1])
-                
                 var slipData = Data()
-                var endValue = SLIP_END.bigEndian
-                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
-                
+                /* Send an initial END character to flush out any data that may
+                 * have accumulated in the receiver due to line noise
+                 */
+                slipData.append(SLIP_END.data)
                 for byte in packet.packetData() {
                     if byte == SLIP_END {
-                        var escENDValue = escEND.bigEndian
-                        slipData.append(UnsafeBufferPointer(start: &escENDValue, count: 2))
+                        /* If it's the same code as an END character, we send a
+                         * special two character code so as not to make the
+                         * receiver think we sent an END
+                         */
+                        slipData.append(SLIP_ESC.data)
+                        slipData.append(SLIP_ESC_END.data)
                     } else if byte == SLIP_ESC {
-                        var escESCValue = escESC.bigEndian
-                        slipData.append(UnsafeBufferPointer(start: &escESCValue, count: 2))
+                        /* If it's the same code as an ESC character,
+                         * we send a special two character code so as not
+                         * to make the receiver think we sent an ESC
+                         */
+                        slipData.append(SLIP_ESC.data)
+                        slipData.append(SLIP_ESC_ESC.data)
                     } else {
-                        var byteValue = byte
-                        slipData.append(UnsafeBufferPointer(start: &byteValue, count: 1))
+                        // Otherwise, we just send the character
+                        slipData.append(byte.data)
                     }
                 }
-                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
-                socket.write(slipData, withTimeout: timeout, tag: packet.packetData().count)
+                // Tell the receiver that we're done sending the packet
+                slipData.append(SLIP_END.data)
+                socket.write(slipData, withTimeout: timeout, tag: slipData.count)
             case .PLH:
                 // Outgoing OSC Packets are framed using a packet length header
                 var plhData = Data()
@@ -262,5 +267,14 @@ public class Socket {
             }
         }
     }    
+    
+}
+
+extension Numeric {
+    
+    var data: Data {
+        var source = self
+        return Data(bytes: &source, count: MemoryLayout<Self>.size)
+    }
     
 }
