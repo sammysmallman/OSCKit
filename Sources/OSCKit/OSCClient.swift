@@ -26,7 +26,7 @@
 
 import Foundation
 import CocoaAsyncSocket
-import NetUtils
+
 
 public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
     
@@ -69,7 +69,6 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
             }
             guard let sock = self.socket else { return }
             sock.host = host
-            setBroadcastFlag()
         }
     }
     
@@ -79,24 +78,10 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
             sock.port = port
         }
     }
-    public var streamFraming: OSCParser.streamFraming = .SLIP
+    public var streamFraming: OSCTCPStreamFraming = .SLIP
     
     public override init() {
         super.init()
-    }
-    
-    private func setBroadcastFlag() {
-        guard let socket = socket, let interface = interface, !useTCP else { return }
-        var set = false
-        for i in Interface.allInterfaces() where i.name == interface && i.broadcastAddress == host {
-            set = true
-            break
-        }
-        do {
-            try socket.udpSocket?.enableBroadcast(set)
-        } catch {
-            debugPrint("Could not \(set == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
-        }
     }
     
     internal func createSocket() {
@@ -114,7 +99,6 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
         sock.interface = self.interface
         sock.host = self.host
         sock.port = self.port
-        setBroadcastFlag()
     }
     
     internal func destroySocket() {

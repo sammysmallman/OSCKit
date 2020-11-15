@@ -1,5 +1,5 @@
 //
-//  OSCKit.h
+//  OSCDefine.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
@@ -23,20 +23,18 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-//
 
-#import <Cocoa/Cocoa.h>
+import Foundation
 
-//! Project version number for OSCKit.
-FOUNDATION_EXPORT double OSCKitVersionNumber;
+// http://www.rfc-editor.org/rfc/rfc1055.txt
 
-//! Project version string for OSCKit.
-FOUNDATION_EXPORT const unsigned char OSCKitVersionString[];
+// Integer literals can be written as an octal number with a 0o prefix.
+internal let slipEnd: UInt8 = 0o0300         /* indicates end of packet */
+internal let slipEsc: UInt8 = 0o0333         /* indicates byte stuffing */
+internal let slipEscEnd: UInt8 = 0o0334     /* ESC ESC_END means END data byte */
+internal let slipEscEsc: UInt8 = 0o0335     /* ESC ESC_ESC means ESC data byte */
 
-// In this header, you should import all the public headers of your framework using statements like #import <OSCKit/PublicHeader.h>
-
-#define END             0300    /* indicates end of packet */
-#define ESC             0333    /* indicates byte stuffing */
-#define ESC_END         0334    /* ESC ESC_END means END data byte */
-#define ESC_ESC         0335    /* ESC ESC_ESC means ESC data byte */
-
+public enum OSCTCPStreamFraming {
+    case SLIP   // http://www.rfc-editor.org/rfc/rfc1055.txt
+    case PLH    // Packet Length Headers
+}

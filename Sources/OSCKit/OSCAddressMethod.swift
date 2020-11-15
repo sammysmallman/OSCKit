@@ -26,6 +26,12 @@
 
 import Foundation
 
+public enum OSCAddressPatternMatch {
+    case string
+    case different
+    case wildcard
+}
+
 public struct OSCAddressMethod: Hashable, Equatable {
     
     public let addressPattern: String
@@ -49,23 +55,14 @@ public struct OSCAddressMethod: Hashable, Equatable {
     }
     
     // "/a/b/c/d/e" is equal to "/a/b/c/d/e" or "/a/b/c/d/*".
-    public func matches(part: String, atIndex index: Int) -> Bool {
-        guard parts.indices.contains(index) else { return false }
-        return parts[index] == part || parts[index] == "*"
-    }
-
-    // MARK:- Pattern Matching
-    public static func matches(for addressPattern: String, inAddressSpace addressSpace: Set<OSCAddressMethod>) -> Set<OSCAddressMethod> {
-        var parts = addressPattern.components(separatedBy: "/")
-        parts.removeFirst()
-        var matchedAddresses: Set<OSCAddressMethod> = addressSpace
-        // 1. The OSC Address and the OSC Address Pattern contain the same number of parts; and
-        matchedAddresses = matchedAddresses.filter({ parts.count == $0.parts.count })
-        // 2. Each part of the OSC Address Pattern matches the corresponding part of the OSC Address.
-        for (index, part) in parts.enumerated() {
-            matchedAddresses = matchedAddresses.filter({ $0.matches(part: part, atIndex: index) })
+    public func match(part: String, atIndex index: Int) -> OSCAddressPatternMatch {
+        guard parts.indices.contains(index) else { return .different }
+        let match = parts[index]
+        switch match {
+        case part: return .string
+        case "*": return .wildcard
+        default: return .different
         }
-        return matchedAddresses
     }
 
 }

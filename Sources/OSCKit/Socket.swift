@@ -28,6 +28,7 @@
 
 import Foundation
 import CocoaAsyncSocket
+import NetUtils
 
 extension Socket: CustomStringConvertible {
     public var description: String {
@@ -40,13 +41,6 @@ extension Socket: CustomStringConvertible {
 }
 
 public class Socket {
-    
-    private enum slipCharacter: Int {
-        case END = 0o0300       /* indicates end of packet */
-        case ESC = 0o0333       /* indicates byte stuffing */
-        case ESC_END = 0o0334   /* ESC ESC_END means END data byte */
-        case ESC_ESC = 0o0335   /* ESC ESC_ESC means ESC data byte */
-    }
     
     private let timeout: TimeInterval = 3.0
     
@@ -207,35 +201,39 @@ public class Socket {
         socket.disconnect()
     }
     
-    public func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCParser.streamFraming) {
+    public func sendTCP(packet: OSCPacket, withStreamFraming streamFraming: OSCTCPStreamFraming) {
         if let socket = self.tcpSocket, !packet.packetData().isEmpty {
             switch streamFraming {
             case .SLIP:
                 // Outgoing OSC Packets are framed using the double END SLIP protocol http://www.rfc-editor.org/rfc/rfc1055.txt
-                let escENDbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_END.rawValue)]
-                let escEND = UInt16(escENDbytes[0]) << 8 | UInt16(escENDbytes[1])
-                let escESCbytes: [UInt8] = [UInt8(slipCharacter.ESC.rawValue), UInt8(slipCharacter.ESC_ESC.rawValue)]
-                let escESC = UInt16(escESCbytes[0]) << 8 | UInt16(escESCbytes[1])
-                let end = UInt8(slipCharacter.END.rawValue)
-                
                 var slipData = Data()
-                var endValue = end.bigEndian
-                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
-                
+                /* Send an initial END character to flush out any data that may
+                 * have accumulated in the receiver due to line noise
+                 */
+                slipData.append(slipEnd.data)
                 for byte in packet.packetData() {
-                    if byte == UInt8(slipCharacter.END.rawValue) {
-                        var escENDValue = escEND.bigEndian
-                        slipData.append(UnsafeBufferPointer(start: &escENDValue, count: 2))
-                    } else if byte == UInt8(slipCharacter.ESC.rawValue) {
-                        var escESCValue = escESC.bigEndian
-                        slipData.append(UnsafeBufferPointer(start: &escESCValue, count: 2))
+                    if byte == slipEnd {
+                        /* If it's the same code as an END character, we send a
+                         * special two character code so as not to make the
+                         * receiver think we sent an END
+                         */
+                        slipData.append(slipEsc.data)
+                        slipData.append(slipEscEnd.data)
+                    } else if byte == slipEsc {
+                        /* If it's the same code as an ESC character,
+                         * we send a special two character code so as not
+                         * to make the receiver think we sent an ESC
+                         */
+                        slipData.append(slipEsc.data)
+                        slipData.append(slipEscEsc.data)
                     } else {
-                        var byteValue = byte
-                        slipData.append(UnsafeBufferPointer(start: &byteValue, count: 1))
+                        // Otherwise, we just send the character
+                        slipData.append(byte.data)
                     }
                 }
-                slipData.append(UnsafeBufferPointer(start: &endValue, count: 1))
-                socket.write(slipData, withTimeout: timeout, tag: packet.packetData().count)
+                // Tell the receiver that we're done sending the packet
+                slipData.append(slipEnd.data)
+                socket.write(slipData, withTimeout: timeout, tag: slipData.count)
             case .PLH:
                 // Outgoing OSC Packets are framed using a packet length header
                 var plhData = Data()
@@ -248,8 +246,14 @@ public class Socket {
     }
     
     public func sendUDP(packet: OSCPacket) {
-        if let socket = self.udpSocket, !packet.packetData().isEmpty {
+        if let socket = self.udpSocket {
             if let aInterface = self.interface {
+                let enableBroadcast = Interface.allInterfaces().contains(where: { $0.name == interface && $0.broadcastAddress == host })
+                do {
+                    try socket.enableBroadcast(enableBroadcast)
+                } catch {
+                    debugPrint("Could not \(enableBroadcast == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
+                }
                 do {
                     // Port 0 means that the OS should choose a random ephemeral port for this socket.
                    try socket.bind(toPort: 0, interface: aInterface)
@@ -263,5 +267,14 @@ public class Socket {
             }
         }
     }    
+    
+}
+
+extension Numeric {
+    
+    var data: Data {
+        var source = self
+        return Data(bytes: &source, count: MemoryLayout<Self>.size)
+    }
     
 }

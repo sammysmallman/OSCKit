@@ -37,7 +37,7 @@ public class OSCMessage: OSCPacket {
     public let argumentTypes: [OSCArgument]
     public var replySocket: Socket? = nil
     
-    public init(with addressPattern: String, arguments: [Any]) {
+    public init(with addressPattern: String, arguments: [Any] = []) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
@@ -157,7 +157,7 @@ public class OSCMessage: OSCPacket {
 
 extension String {
     func oscStringData()->Data {
-        var data = self.data(using: String.Encoding.utf8)!
+        var data = self.data(using: .utf8)!
         for _ in 1...4-data.count%4 {
             var null = UInt8(0)
             data.append(&null, count: 1)
