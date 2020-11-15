@@ -25,7 +25,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", from: "2.0.1")
+    .package(url: "https://github.com/SammySmallman/OSCKit", from: "2.1.0")
 ]
 ```
 
