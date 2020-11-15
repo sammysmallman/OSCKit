@@ -210,29 +210,29 @@ public class Socket {
                 /* Send an initial END character to flush out any data that may
                  * have accumulated in the receiver due to line noise
                  */
-                slipData.append(SLIP_END.data)
+                slipData.append(slipEnd.data)
                 for byte in packet.packetData() {
-                    if byte == SLIP_END {
+                    if byte == slipEnd {
                         /* If it's the same code as an END character, we send a
                          * special two character code so as not to make the
                          * receiver think we sent an END
                          */
-                        slipData.append(SLIP_ESC.data)
-                        slipData.append(SLIP_ESC_END.data)
-                    } else if byte == SLIP_ESC {
+                        slipData.append(slipEsc.data)
+                        slipData.append(slipEscEnd.data)
+                    } else if byte == slipEsc {
                         /* If it's the same code as an ESC character,
                          * we send a special two character code so as not
                          * to make the receiver think we sent an ESC
                          */
-                        slipData.append(SLIP_ESC.data)
-                        slipData.append(SLIP_ESC_ESC.data)
+                        slipData.append(slipEsc.data)
+                        slipData.append(slipEscEsc.data)
                     } else {
                         // Otherwise, we just send the character
                         slipData.append(byte.data)
                     }
                 }
                 // Tell the receiver that we're done sending the packet
-                slipData.append(SLIP_END.data)
+                slipData.append(slipEnd.data)
                 socket.write(slipData, withTimeout: timeout, tag: slipData.count)
             case .PLH:
                 // Outgoing OSC Packets are framed using a packet length header

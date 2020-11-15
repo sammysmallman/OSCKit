@@ -1,8 +1,27 @@
 //
-//  File.swift
-//  
+//  OSCDefine.swift
+//  OSCKit
 //
-//  Created by Sam Smallman on 25/10/2020.
+//  Created by Sam Smallman on 29/10/2017.
+//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 //
 
 import Foundation
@@ -10,12 +29,12 @@ import Foundation
 // http://www.rfc-editor.org/rfc/rfc1055.txt
 
 // Integer literals can be written as an octal number with a 0o prefix.
-internal let SLIP_END: UInt8 = 0o0300         /* indicates end of packet */
-internal let SLIP_ESC: UInt8 = 0o0333         /* indicates byte stuffing */
-internal let SLIP_ESC_END: UInt8 = 0o0334     /* ESC ESC_END means END data byte */
-internal let SLIP_ESC_ESC: UInt8 = 0o0335     /* ESC ESC_ESC means ESC data byte */
+internal let slipEnd: UInt8 = 0o0300         /* indicates end of packet */
+internal let slipEsc: UInt8 = 0o0333         /* indicates byte stuffing */
+internal let slipEscEnd: UInt8 = 0o0334     /* ESC ESC_END means END data byte */
+internal let slipEscEsc: UInt8 = 0o0335     /* ESC ESC_ESC means ESC data byte */
 
 public enum OSCTCPStreamFraming {
-    case SLIP
-    case PLH
+    case SLIP   // http://www.rfc-editor.org/rfc/rfc1055.txt
+    case PLH    // Packet Length Headers
 }
