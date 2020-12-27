@@ -71,7 +71,7 @@ func take(message: OSCMessage) {
 }
 
 func take(bundle: OSCBundle) {
-    print("Received bundle - time tag: \(bundle.timeTag.hex() elements: \(bundle.elements.count)")
+    print("Received bundle - time tag: \(bundle.timeTag.hex()) elements: \(bundle.elements.count)")
 }
 ```   
 #### Step 4
