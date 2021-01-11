@@ -154,7 +154,7 @@ public class OSCMessage: OSCPacket {
 extension String {
     func oscStringData()->Data {
         var data = self.data(using: .utf8)!
-        for _ in 1...4-data.count%4 {
+        for _ in 1...4 - data.count % 4 {
             var null = UInt8(0)
             data.append(&null, count: 1)
         }
@@ -165,11 +165,8 @@ extension String {
 extension Data {
     func oscBlobData()->Data {
         let length = UInt32(self.count)
-        var int = length.bigEndian
-        let buffer = UnsafeBufferPointer(start: &int, count: 1)
-        let sizeCount = Data(buffer: buffer)
         var data = Data()
-        data.append(sizeCount)
+        data.append(length.bigEndian.data)
         data.append(self)
         while data.count % 4 != 0 {
             var null = UInt8(0)
@@ -181,15 +178,18 @@ extension Data {
 
 extension NSNumber {
     func oscIntData()->Data {
-        var int = Int32(truncating: self).bigEndian
-        let buffer = UnsafeBufferPointer(start: &int, count: 1)
-        return Data(buffer: buffer)
+        return Data(Int32(truncating: self).bigEndian.data)
     }
     
     func oscFloatData()->Data  {
-        var float = CFConvertFloatHostToSwapped(Float32(truncating: self))
-        let buffer = UnsafeBufferPointer(start: &float , count: 1)
-        return Data(buffer: buffer)
+        var float: CFSwappedFloat32 = CFConvertFloatHostToSwapped(Float32(truncating: self))
+        let size: Int = MemoryLayout<CFSwappedFloat32>.size
+        let result: [UInt8] = withUnsafePointer(to: &float) {
+            $0.withMemoryRebound(to: UInt8.self, capacity: size) {
+                Array(UnsafeBufferPointer(start: $0, count: size))
+            }
+        }
+        return Data(result)
     }
 }
 
