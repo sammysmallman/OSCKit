@@ -26,8 +26,6 @@
 
 import Foundation
 
-// MARK: TimeTag
-
 public class OSCTimeTag {
     
     private let seconds: UInt32

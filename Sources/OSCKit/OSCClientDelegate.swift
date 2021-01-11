@@ -26,7 +26,7 @@
 
 import Foundation
 
-public protocol OSCClientDelegate {
+public protocol OSCClientDelegate: class {
     
     func clientDidConnect(client: OSCClient)
     func clientDidDisconnect(client: OSCClient)

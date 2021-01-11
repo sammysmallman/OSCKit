@@ -26,31 +26,11 @@
 
 import Foundation
 
-public enum OSCParserError: Error {
-    case unrecognisedData
-    case noSocket
-    case cantConfirmDanglingESC
-    case cantParseAddressPattern
-    case cantParseTypeTagString
-    case cantParseOSCString
-    case cantParseOSCInt
-    case cantParseOSCFloat
-    case cantParseOSCBlob
-    case cantParseOSCTimeTag
-    case cantParseSizeOfElement
-    case cantParseTypeOfElement
-    case cantParseBundleElement
-}
-
-// MARK: Parser
-
 public class OSCParser {
-    
-
     
     private var plhDataBuffer: Data?
     
-    public func process(OSCDate data: Data, for destination: OSCPacketDestination, with replySocket: Socket) throws {
+    public func process(OSCDate data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
         guard let string = String(data: data.prefix(upTo: 1), encoding: .utf8) else {
             throw OSCParserError.unrecognisedData
         }
@@ -71,7 +51,7 @@ public class OSCParser {
         }
     }
     
-    private func process(OSCMessageData data: Data, for destination: OSCPacketDestination, with replySocket: Socket) throws {
+    private func process(OSCMessageData data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
         var startIndex = 0
         do {
             let message = try parseOSCMessage(with: data, startIndex: &startIndex)
@@ -82,7 +62,7 @@ public class OSCParser {
         }
     }
     
-    private func process(OSCBundleData data: Data, for destination: OSCPacketDestination, with replySocket: Socket) throws {
+    private func process(OSCBundleData data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
         do {
             let  bundle = try parseOSCBundle(with: data)
             bundle.replySocket = replySocket
@@ -96,7 +76,7 @@ public class OSCParser {
         switch streamFraming {
         case .SLIP:
             // There are two versions of OSC. OSC 1.1 frames messages using the SLIP protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
-            guard let socket = state.object(forKey: "socket") as? Socket else {
+            guard let socket = state.object(forKey: "socket") as? OSCSocket else {
                 throw OSCParserError.noSocket
             }
             guard let dangling_ESC = state.object(forKey: "dangling_ESC") as? Bool else {
@@ -169,7 +149,7 @@ public class OSCParser {
                 }
             }
         case .PLH:
-            guard let socket = state.object(forKey: "socket") as? Socket else {
+            guard let socket = state.object(forKey: "socket") as? OSCSocket else {
                 throw OSCParserError.noSocket
             }
             var buffer = Data()
@@ -206,7 +186,7 @@ public class OSCParser {
         guard let addressPattern = oscString(with: data, startIndex: &firstIndex) else {
             throw OSCParserError.cantParseAddressPattern
         }
-        print("Address Pattern: \(addressPattern)")
+
         guard let typeTagString = oscString(with: data, startIndex: &firstIndex) else {
             throw OSCParserError.cantParseTypeTagString
         }
@@ -392,4 +372,20 @@ public class OSCParser {
         return OSCTimeTag(withData: oscTimeTagData)
     }
     
+}
+
+public enum OSCParserError: Error {
+    case unrecognisedData
+    case noSocket
+    case cantConfirmDanglingESC
+    case cantParseAddressPattern
+    case cantParseTypeTagString
+    case cantParseOSCString
+    case cantParseOSCInt
+    case cantParseOSCFloat
+    case cantParseOSCBlob
+    case cantParseOSCTimeTag
+    case cantParseSizeOfElement
+    case cantParseTypeOfElement
+    case cantParseBundleElement
 }

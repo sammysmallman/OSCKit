@@ -26,13 +26,11 @@
 
 import Foundation
 
-// MARK: Bundle
-
 public class OSCBundle: OSCPacket {
     
     public var timeTag: OSCTimeTag = OSCTimeTag()
     public var elements: [OSCPacket] = []
-    public var replySocket: Socket?
+    public var replySocket: OSCSocket?
     
     public init(with elements: [OSCPacket] = []) {
         bundle(with: elements, timeTag: OSCTimeTag.init())
@@ -42,11 +40,11 @@ public class OSCBundle: OSCPacket {
         bundle(with: elements, timeTag: timeTag)
     }
     
-    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: Socket?) {
+    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: OSCSocket?) {
         bundle(with: elements, timeTag: timeTag, replySocket: replySocket)
     }
     
-    private func bundle(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: Socket? = nil) {
+    private func bundle(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: OSCSocket? = nil) {
         self.timeTag = timeTag
         self.elements = elements
         self.replySocket = replySocket

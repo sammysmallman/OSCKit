@@ -27,17 +27,19 @@
 import Foundation
 import CocoaAsyncSocket
 
-
 public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate {
     
-    private var socket: Socket?
+    private var socket: OSCSocket?
     private var userData: NSData?
     private var readData = NSMutableData()
     private var readState = NSMutableDictionary()
     private var activeData = NSMutableDictionary()
     private var activeState = NSMutableDictionary()
     
-    public var delegate: (OSCClientDelegate & OSCPacketDestination)?
+    public weak var delegate: (OSCClientDelegate & OSCPacketDestination)?
+    
+    /// The delegate which receives debug log messages from this producer.
+    public weak var debugDelegate: OSCDebugDelegate?
     
     public var isConnected: Bool {
         get {
@@ -87,13 +89,13 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
     internal func createSocket() {
         if self.useTCP {
             let tcpSocket = GCDAsyncSocket(delegate: self, delegateQueue: DispatchQueue.main)
-            self.socket = Socket(with: tcpSocket)
+            self.socket = OSCSocket(with: tcpSocket)
             guard let sock = self.socket else { return }
             self.readState.setValue(sock, forKey: "socket")
             self.readState.setValue(false, forKey: "dangling_ESC")
         } else {
             let udpSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
-            self.socket = Socket(with: udpSocket)
+            self.socket = OSCSocket(with: udpSocket)
         }
         guard let sock = self.socket else { return }
         sock.interface = self.interface
@@ -130,11 +132,11 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
             do {
                 try connect()
             } catch {
-                debugPrint("Could not send establish connection to send packet.")
+                debugDelegate?.debugLog("Could not send establish connection to send packet.")
             }
         }
         guard let sock = self.socket else {
-            debugPrint("Error: Could not send data; no socket available.")
+            debugDelegate?.debugLog("Error: Could not send data; no socket available.")
             return
         }
         if let tcpSocket = sock.tcpSocket, sock.isTCPSocket {
@@ -157,71 +159,53 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
     }
     
     public func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didConnectToHost: \(host):\(port)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didConnectToHost: \(host):\(port)")
         guard let delegate = self.delegate else { return }
         delegate.clientDidConnect(client: self)
     }
     
     public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didRead Data of length: \(data.count), withTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didRead Data of length: \(data.count), withTag: \(tag)")
         
         guard let delegate = self.delegate else { return }
         do {
             try OSCParser().translate(OSCData: data, streamFraming: streamFraming, to: readData, with: readState, andDestination: delegate)
             sock.readData(withTimeout: -1, tag: tag)
         } catch {
-            print("Error: \(error)")
+            debugDelegate?.debugLog("Error: \(error)")
         }
     }
     
     public func socket(_ sock: GCDAsyncSocket, didReadPartialDataOfLength partialLength: UInt, tag: Int) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didReadPartialDataOfLength: \(partialLength), withTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didReadPartialDataOfLength: \(partialLength), withTag: \(tag)")
     }
     
     public func socket(_ sock: GCDAsyncSocket, didWriteDataWithTag tag: Int) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didWriteDataWithTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didWriteDataWithTag: \(tag)")
     }
     
     public func socket(_ sock: GCDAsyncSocket, didWritePartialDataOfLength partialLength: UInt, tag: Int) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didWritePartialDataOfLength: \(partialLength), withTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didWritePartialDataOfLength: \(partialLength), withTag: \(tag)")
     }
     
     public func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) shouldTimeoutReadWithTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) shouldTimeoutReadWithTag: \(tag)")
         return 0
     }
     
     public func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) shouldTimeoutWriteWithTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) shouldTimeoutWriteWithTag: \(tag)")
         return 0
     }
     
     public func socketDidCloseReadStream(_ sock: GCDAsyncSocket) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didCloseReadStream")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didCloseReadStream")
         self.readData.setData(Data())
         self.readState.setValue(false, forKey: "dangling_ESC")
     }
     
     public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didDisconnect, withError: \(String(describing: err))")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didDisconnect, withError: \(err.debugDescription)")
         self.readData.setData(Data())
         self.readState.setValue(false, forKey: "dangling_ESC")
         guard let delegate = self.delegate else { return }
@@ -229,49 +213,33 @@ public class OSCClient : NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDele
     }
     
     public func socketDidSecure(_ sock: GCDAsyncSocket) {
-        #if Client_Debug
-            debugPrint("Client Socket: \(sock) didSecure")
-        #endif
+        debugDelegate?.debugLog("Client Socket: \(sock) didSecure")
     }
     
     // MARK: GCDAsyncUDPSocketDelegate
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didConnectToAddress address: Data) {
-        #if Client_Debug
-            debugPrint("UDP Socket: \(sock) didConnectToAddress \(address)")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) didConnectToAddress \(address)")
     }
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotConnect error: Error?) {
-        #if Client_Debug
-            debugPrint("UDP Socket: \(sock) didNotConnect, dueToError: \(String(describing: error?.localizedDescription))")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) didNotConnect, dueToError: \(error.debugDescription))")
     }
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didSendDataWithTag tag: Int) {
-        #if Client_Debug
-            debugPrint("UDP Socket: \(sock) didSendDataWithTag: \(tag)")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) didSendDataWithTag: \(tag)")
     }
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
-        #if Client_Debug
-            debugPrint("UDP Socket: \(sock) didNotSendDataWithTag: \(tag), dueToError: \(String(describing: error?.localizedDescription))")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) didNotSendDataWithTag: \(tag), dueToError: \(error.debugDescription)")
     }
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
-        // Client UDP Sockets do not receive data.
-        #if Client_Debug
-            debugPrint("UDP Socket: \(sock) didReceiveData of Length: \(data.count), fromAddress \(address)")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) didReceiveData of Length: \(data.count), fromAddress \(address)")
     }
     
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket, withError error: Error?) {
-        #if Server_Debug
-            debugPrint("UDP Socket: \(sock) Did Close. With Error: \(String(describing: error?.localizedDescription))")
-        #endif
+        debugDelegate?.debugLog("UDP Socket: \(sock) Did Close. With Error: \(String(describing: error?.localizedDescription))")
     }
-    
     
 }

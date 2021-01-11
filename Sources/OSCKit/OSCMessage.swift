@@ -26,8 +26,6 @@
 
 import Foundation
 
-// MARK: Message
-
 public class OSCMessage: OSCPacket {
     
     public private(set) var addressPattern: String
@@ -35,7 +33,7 @@ public class OSCMessage: OSCPacket {
     public let arguments: [Any]
     public let typeTagString: String
     public let argumentTypes: [OSCArgument]
-    public var replySocket: Socket? = nil
+    public var replySocket: OSCSocket? = nil
     
     public init(with addressPattern: String, arguments: [Any] = []) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
@@ -69,7 +67,6 @@ public class OSCMessage: OSCPacket {
                     newTypeTagString.append("f")
                     types.append(.oscFloat)
                 default:
-                    debugPrint("Number with unrecognised type: \(String(describing: argument))")
                     continue
                 }
             } else if argument is OSCTimeTag {
@@ -138,7 +135,6 @@ public class OSCMessage: OSCPacket {
                 case CFNumberType.float32Type, CFNumberType.float64Type, CFNumberType.floatType, CFNumberType.doubleType, CFNumberType.cgFloatType:
                     result.append(number.oscFloatData())
                 default:
-                    debugPrint("Number with unrecognised type: \(argument)")
                     continue
                 }
             } else if argument is OSCTimeTag {

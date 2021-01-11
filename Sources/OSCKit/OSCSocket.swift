@@ -24,23 +24,11 @@
 //  THE SOFTWARE.
 //
 
-// MARK: Socket
-
 import Foundation
 import CocoaAsyncSocket
 import NetUtils
 
-extension Socket: CustomStringConvertible {
-    public var description: String {
-        if isTCPSocket {
-            return "TCP Socket \(self.host ?? "No Host"):\(self.port) isConnected = \(isConnected)"
-        } else {
-            return "UDP Socket \(self.host ?? "No Host"):\(self.port)"
-        }
-    }
-}
-
-public class Socket {
+public class OSCSocket {
     
     private let timeout: TimeInterval = 3.0
     
@@ -49,6 +37,8 @@ public class Socket {
     public var interface: String?
     public var host: String?
     public var port: UInt16 = 0
+    
+    weak var delegate: OSCDebugDelegate?
     
     public var isConnected: Bool {
         get {
@@ -109,9 +99,7 @@ public class Socket {
         } else {
             try socket.joinMulticastGroup(group)
         }
-        #if Socket_Debug
-            debugPrint("UDP Socket - Joined Multicast Group: \(group)")
-        #endif
+        delegate?.debugLog("UDP Socket - Joined Multicast Group: \(group)")
     }
     
     func leaveMulticast(group: String) throws {
@@ -121,37 +109,27 @@ public class Socket {
         } else {
             try socket.leaveMulticastGroup(group)
         }
-        #if Socket_Debug
-            debugPrint("UDP Socket - Left Multicast Group: \(group)")
-        #endif
+        delegate?.debugLog("UDP Socket - Left Multicast Group: \(group)")
     }
     
     func startListening() throws {
         
         if let socket = self.tcpSocket {
             if let aInterface = self.interface  {
-                #if Socket_Debug
-                    debugPrint("TCP Socket - Start Listening on Interface: \(aInterface), withPort: \(port)")
-                #endif
+                delegate?.debugLog("TCP Socket - Start Listening on Interface: \(aInterface), withPort: \(port)")
                 try socket.accept(onInterface: aInterface, port: port)
             } else {
-                #if Socket_Debug
-                    debugPrint("TCP Socket - Start Listening on Port: \(port)")
-                #endif
+                delegate?.debugLog("TCP Socket - Start Listening on Port: \(port)")
                 try socket.accept(onPort: port)
             }
         }
         if let socket = self.udpSocket {
             if let aInterface = self.interface {
-                #if Socket_Debug
-                    debugPrint("UDP Socket - Start Listening on Interface: \(aInterface), withPort: \(port)")
-                #endif
+                delegate?.debugLog("UDP Socket - Start Listening on Interface: \(aInterface), withPort: \(port)")
                 try socket.bind(toPort: port, interface: aInterface)
                 try socket.beginReceiving()
             } else {
-                #if Socket_Debug
-                    debugPrint("UDP Socket - Start Listening on Port: \(port)")
-                #endif
+                delegate?.debugLog("UDP Socket - Start Listening on Port: \(port)")
                 try socket.bind(toPort: port)
                 try socket.beginReceiving()
             }
@@ -160,9 +138,7 @@ public class Socket {
     
     func startListening(with groups: [String]) throws {
         if let socket = self.udpSocket {
-            #if Socket_Debug
-            debugPrint("UDP Socket - Start Listening on Port: \(port)")
-            #endif
+            delegate?.debugLog("UDP Socket - Start Listening on Port: \(port)")
             try socket.bind(toPort: port)
             try socket.beginReceiving()
             for group in groups {
@@ -175,15 +151,11 @@ public class Socket {
         if self.isTCPSocket {
             guard let socket = self.tcpSocket else { return }
             socket.disconnectAfterWriting()
-            #if Socket_Debug
-                debugPrint("TCP Socket - Stop Listening)")
-            #endif
+            delegate?.debugLog("TCP Socket - Stop Listening)")
         } else {
             guard let socket = self.udpSocket else { return }
             socket.close()
-            #if Socket_Debug
-                debugPrint("UDP Socket - Stop Listening)")
-            #endif
+            delegate?.debugLog("UDP Socket - Stop Listening)")
         }
     }
     
@@ -252,13 +224,13 @@ public class Socket {
                 do {
                     try socket.enableBroadcast(enableBroadcast)
                 } catch {
-                    debugPrint("Could not \(enableBroadcast == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
+                    delegate?.debugLog("Could not \(enableBroadcast == true ? "Enable" : "Disable") the broadcast flag on UDP Socket.")
                 }
                 do {
                     // Port 0 means that the OS should choose a random ephemeral port for this socket.
                    try socket.bind(toPort: 0, interface: aInterface)
                 } catch {
-                    debugPrint("Warning: \(socket) unable to bind interface")
+                    delegate?.debugLog("Warning: \(socket) unable to bind interface")
                 }
             }
             if let aHost = host {
@@ -270,6 +242,16 @@ public class Socket {
     
 }
 
+extension OSCSocket: CustomStringConvertible {
+    public var description: String {
+        if isTCPSocket {
+            return "TCP Socket \(self.host ?? "No Host"):\(self.port) isConnected = \(isConnected)"
+        } else {
+            return "UDP Socket \(self.host ?? "No Host"):\(self.port)"
+        }
+    }
+}
+
 extension Numeric {
     
     var data: Data {
@@ -278,3 +260,5 @@ extension Numeric {
     }
     
 }
+
+

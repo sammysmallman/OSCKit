@@ -1,8 +1,8 @@
 //
-//  OSCPacketDestination.swift
+//  OSCDebugDelegate.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 11/01/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,9 +26,11 @@
 
 import Foundation
 
-public protocol OSCPacketDestination: class {
+/// Notifies observers when new messages are received, and provides debug information.
+public protocol OSCDebugDelegate: class {
     
-    func take(message: OSCMessage)
-    func take(bundle: OSCBundle)
+    /// Notifies the delegate of a new debug log entry.
+    /// - Parameter logMessage: A human-readable log message.
+    func debugLog(_ logMessage: String)
     
 }

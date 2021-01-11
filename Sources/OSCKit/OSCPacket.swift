@@ -26,8 +26,6 @@
 
 import Foundation
 
-// MARK: Packet Protocol
-
 public protocol OSCPacket {
     
     func packetData()->Data
