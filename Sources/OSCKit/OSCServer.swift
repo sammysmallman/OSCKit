@@ -39,7 +39,7 @@ public class OSCServer: NSObject, GCDAsyncSocketDelegate, GCDAsyncUdpSocketDeleg
     private var joinedMulticastGroups: [String] = []
     
     /// The delegate which receives debug log messages from this producer.
-    weak var debugDelegate: OSCDebugDelegate?
+    public weak var debugDelegate: OSCDebugDelegate?
     
     public var interface: String = "localhost" {
         willSet {

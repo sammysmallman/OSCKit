@@ -38,7 +38,7 @@ public class OSCSocket {
     public var host: String?
     public var port: UInt16 = 0
     
-    weak var delegate: OSCDebugDelegate?
+    public weak var delegate: OSCDebugDelegate?
     
     public var isConnected: Bool {
         get {
