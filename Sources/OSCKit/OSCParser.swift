@@ -341,9 +341,7 @@ public class OSCParser {
     
     private func oscFloat(with buffer: Data, startIndex firstIndex: inout Int) -> Float32? {
         // An OSC Float is a 32-bit big-endian IEEE 754 floating point number.
-        let result = buffer.subdata(in: firstIndex..<firstIndex + 4).withUnsafeBytes { (pointer: UnsafePointer<CFSwappedFloat32>) -> Float32 in
-            return CFConvertFloat32SwappedToHost(pointer.pointee)
-        }
+        let result = buffer.subdata(in: firstIndex..<firstIndex + 4).withUnsafeBytes { CFConvertFloat32SwappedToHost($0.load(as: CFSwappedFloat32.self)) }
         firstIndex += 4
         return result
     }

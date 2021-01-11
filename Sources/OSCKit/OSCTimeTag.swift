@@ -74,12 +74,8 @@ public class OSCTimeTag {
 
     func oscTimeTagData()->Data {
         var data = Data()
-        var variableSeconds = seconds.bigEndian
-        let secondsBuffer = UnsafeBufferPointer(start: &variableSeconds, count: 1)
-        data.append(Data(buffer: secondsBuffer))
-        var variableFraction = fraction.bigEndian
-        let fractionBuffer = UnsafeBufferPointer(start: &variableFraction, count: 1)
-        data.append(Data(buffer: fractionBuffer))
+        data.append(seconds.bigEndian.data)
+        data.append(fraction.bigEndian.data)
         return data
     }
 }
