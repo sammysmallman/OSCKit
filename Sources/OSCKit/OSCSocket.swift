@@ -92,7 +92,7 @@ public class OSCSocket {
         self.udpSocket = nil
     }
     
-    func joinMulticast(group: String) throws {
+    public func joinMulticast(group: String) throws {
         guard let socket = udpSocket else { return }
         if let aInterface = self.interface {
             try socket.joinMulticastGroup(group, onInterface: aInterface)
@@ -102,7 +102,7 @@ public class OSCSocket {
         delegate?.debugLog("UDP Socket - Joined Multicast Group: \(group)")
     }
     
-    func leaveMulticast(group: String) throws {
+    public func leaveMulticast(group: String) throws {
         guard let socket = udpSocket else { return }
         if let aInterface = self.interface {
             try socket.leaveMulticastGroup(group, onInterface: aInterface)
@@ -112,7 +112,7 @@ public class OSCSocket {
         delegate?.debugLog("UDP Socket - Left Multicast Group: \(group)")
     }
     
-    func startListening() throws {
+    public func startListening() throws {
         
         if let socket = self.tcpSocket {
             if let aInterface = self.interface  {
@@ -136,7 +136,7 @@ public class OSCSocket {
         }
     }
     
-    func startListening(with groups: [String]) throws {
+    public func startListening(with groups: [String]) throws {
         if let socket = self.udpSocket {
             delegate?.debugLog("UDP Socket - Start Listening on Port: \(port)")
             try socket.bind(toPort: port)
@@ -147,7 +147,7 @@ public class OSCSocket {
         }
     }
     
-    func stopListening() {
+    public func stopListening() {
         if self.isTCPSocket {
             guard let socket = self.tcpSocket else { return }
             socket.disconnectAfterWriting()
@@ -159,7 +159,7 @@ public class OSCSocket {
         }
     }
     
-    func connect() throws {
+    public func connect() throws {
         guard let socket = self.tcpSocket, let aHost = self.host, self.isTCPSocket else { return }
         if let aInterface = self.interface {
             try socket.connect(toHost: aHost, onPort: port, viaInterface: aInterface, withTimeout: -1)
@@ -168,7 +168,7 @@ public class OSCSocket {
         }
     }
     
-    func disconnect() {
+    public func disconnect() {
         guard let socket = self.tcpSocket else { return }
         socket.disconnect()
     }
