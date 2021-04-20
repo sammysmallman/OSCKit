@@ -14,17 +14,17 @@ final class OSCAddressSpaceTests: XCTestCase {
     
     func testPatternMatching1() {
         let addressSpace = space()
-        addressSpace.complete(with: OSCMessage(with: "/a/b/x/d/e", arguments: []), priority: .string)
+        let _ = addressSpace.complete(with: OSCMessage(with: "/a/b/x/d/e", arguments: []), priority: .string)
         XCTAssertTrue(addressMethodA)
-        addressSpace.complete(with: OSCMessage(with: "/a/b/x/d/e", arguments: []), priority: .wildcard)
+        let _ = addressSpace.complete(with: OSCMessage(with: "/a/b/x/d/e", arguments: []), priority: .wildcard)
         XCTAssertTrue(addressMethodB)
     }
     
     func testPatternMatching2() {
         let addressSpace = space()
-        addressSpace.complete(with: OSCMessage(with: "/a/b/x/y/e", arguments: []), priority: .string)
+        let _ = addressSpace.complete(with: OSCMessage(with: "/a/b/x/y/e", arguments: []), priority: .string)
         XCTAssertTrue(addressMethodB)
-        addressSpace.complete(with: OSCMessage(with: "/a/b/x/y/e", arguments: []), priority: .wildcard)
+        let _ = addressSpace.complete(with: OSCMessage(with: "/a/b/x/y/e", arguments: []), priority: .wildcard)
         XCTAssertTrue(addressMethodB)
     }
     

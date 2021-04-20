@@ -83,7 +83,8 @@ public class OSCAnnotation {
                 let equalsCommaRegex = "^(\\/[^ \\#*,?\\[\\]{}=]+)((?:=\"[^\"]+\")|(?:=[^\\s\",]+)){0,1}((?:(?:,\"[^\"]+\")|(?:,[^\\s\"=,]+))*)"
                 let regularExpression = try NSRegularExpression(pattern: equalsCommaRegex, options: [])
                 let matches = regularExpression.matches(in: annotation, options: [], range: annotation.nsrange)
-                // There should only be one match. Range at index 1 will always be the address pattern. If there are arguments these will be found at index 2, prefaced with "=" and index 3 if there are more than one argument.
+                // There should only be one match. Range at index 1 will always be the address pattern.
+                // If there are arguments these will be found at index 2, prefaced with "=" and index 3 if there are more than one argument.
                 var oscArguments: [Any] = []
                 guard let match = matches.first, match.range == annotation.nsrange, let addressPattern = annotation.substring(with: match.range(at: 1)) else { return nil }
                 if var argumentString = annotation.substring(with: match.range(at: 2)) {
@@ -111,7 +112,7 @@ public class OSCAnnotation {
                             case "impulse":
                                 oscArguments.append(OSCArgument.oscImpulse)
                             default:
-                                // if the argument is prefaced with quotation marks, the regex dictates the argument should close with them.
+                                // If the argument is prefaced with quotation marks, the regex dictates the argument should close with them.
                                 // Remove the quotation marks.
                                 if argument.first == "\"" {
                                     var quoationMarkArgument = argument
@@ -135,7 +136,8 @@ public class OSCAnnotation {
                 let spacesRegex = "^(\\/(?:[^ \\#*,?\\[\\]{}]+))((?:(?: \"[^\"]+\")|(?: (?:[^\\s\"])+))*)"
                 let regularExpression = try NSRegularExpression(pattern: spacesRegex, options: [])
                 let matches = regularExpression.matches(in: annotation, options: [], range: annotation.nsrange)
-                // There should only be one match. Range at index 1 will always be the address pattern. Range at index 2 will be the argument string prefaced with " "
+                // There should only be one match. Range at index 1 will always be the address pattern.
+                // Range at index 2 will be the argument string prefaced with " "
                 var oscArguments: [Any] = []
                 guard let match = matches.first, match.range == annotation.nsrange, let addressPattern = annotation.substring(with: match.range(at: 1)), let argumentString = annotation.substring(with: match.range(at: 2)) else { return nil }
                 let components = argumentString.components(separatedBy: "\"")
@@ -168,7 +170,7 @@ public class OSCAnnotation {
                         case "impulse":
                             oscArguments.append(OSCArgument.oscImpulse)
                         default:
-                            // if the argument is prefaced with quotation marks, the regex dictates the argument should close with them.
+                            // If the argument is prefaced with quotation marks, the regex dictates the argument should close with them.
                             // Remove the quotation marks.
                             if argument.first == "\"" {
                                 var quoationMarkArgument = argument
