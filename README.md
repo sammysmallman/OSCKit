@@ -126,7 +126,7 @@ Start Listening
 do {
     try server.startListening()
 } catch let error {
-    os_log("Error: %{public}@", log: .server, type: .error, error.localizedDescription)
+    print(error.localizedDescription)
 }
 ```
 
