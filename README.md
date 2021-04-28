@@ -41,7 +41,7 @@ Import OSCKit framework into your project
 import OSCKit
 ```
 #### Step 2
-Create client
+Create a client
 ```swift
 let client = OSCClient()
 client.interface = "en0"
@@ -90,6 +90,44 @@ let message = OSCMessage(with: "/osc/kit", arguments: [1,
 Send a message
 ```swift
 client.send(packet: message)
+```
+
+### OSC Server
+#### Step 1
+Import OSCKit framework into your project
+```swift
+import OSCKit
+```
+#### Step 2
+Create a Server
+```swift
+let server = OSCServer()
+server.port = 24601
+server.interface = "en0"
+server.reusePort = true
+server.delegate = self
+```
+#### Step 3
+Conform to the Server Delegate Protocol's 
+
+OSCPacketDestination:
+```swift
+func take(message: OSCMessage) {
+    print("Received message - \(message.addressPattern)")
+}
+
+func take(bundle: OSCBundle) {
+    print("Received bundle - time tag: \(bundle.timeTag.hex()) elements: \(bundle.elements.count)")
+}
+```
+#### Step 4
+Start Listening
+```swift
+do {
+    try server.startListening()
+} catch let error {
+    os_log("Error: %{public}@", log: .server, type: .error, error.localizedDescription)
+}
 ```
 
 ## Authors
