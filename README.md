@@ -11,6 +11,8 @@ Added features include:
  * takeBundle() - OSCPacketDestinations are notified when an OSC bundle is received so that embedded messages and bundles can be acted upon asynchronously using the bundles timetag.
  * Multicasting - Servers can join & leave multicast groups.
  * OSC 1.0 & 1.1 Stream Framing.
+ 
+ A simple demo project can be found [here](https://github.com/sammysmallman/OSCKitDemo).
 
 ## Installation
 
