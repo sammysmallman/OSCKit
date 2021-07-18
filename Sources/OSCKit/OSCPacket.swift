@@ -28,6 +28,6 @@ import Foundation
 
 public protocol OSCPacket {
     
-    func packetData()->Data
+    func packetData() -> Data
     
 }

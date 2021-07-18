@@ -33,7 +33,6 @@ public class OSCMessage: OSCPacket {
     public let arguments: [Any]
     public let typeTagString: String
     public let argumentTypes: [OSCArgument]
-    public var replySocket: OSCSocket? = nil
     
     public init(with addressPattern: String, arguments: [Any] = []) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
@@ -60,10 +59,23 @@ public class OSCMessage: OSCPacket {
                 }
                 let numberType = CFNumberGetType(number)
                 switch numberType {
-                case CFNumberType.sInt8Type,CFNumberType.sInt16Type,CFNumberType.sInt32Type,CFNumberType.sInt64Type,CFNumberType.charType,CFNumberType.shortType,CFNumberType.intType,CFNumberType.longType,CFNumberType.longLongType,CFNumberType.nsIntegerType:
+                case CFNumberType.sInt8Type,
+                     CFNumberType.sInt16Type,
+                     CFNumberType.sInt32Type,
+                     CFNumberType.sInt64Type,
+                     CFNumberType.charType,
+                     CFNumberType.shortType,
+                     CFNumberType.intType
+                     ,CFNumberType.longType,
+                     CFNumberType.longLongType,
+                     CFNumberType.nsIntegerType:
                     newTypeTagString.append("i")
                     types.append(.oscInt)
-                case CFNumberType.float32Type, CFNumberType.float64Type, CFNumberType.floatType, CFNumberType.doubleType, CFNumberType.cgFloatType:
+                case CFNumberType.float32Type,
+                     CFNumberType.float64Type, 
+                     CFNumberType.floatType, 
+                     CFNumberType.doubleType, 
+                     CFNumberType.cgFloatType:
                     newTypeTagString.append("f")
                     types.append(.oscFloat)
                 default:
@@ -110,7 +122,7 @@ public class OSCMessage: OSCPacket {
         self.addressParts = parts
     }
     
-    public func packetData()->Data {
+    public func packetData() -> Data {
         var result = self.addressPattern.oscStringData()
         result.append(self.typeTagString.oscStringData())
         for argument in arguments {
@@ -130,9 +142,22 @@ public class OSCMessage: OSCPacket {
                 }
                 let numberType = CFNumberGetType(number)
                 switch numberType {
-                case CFNumberType.sInt8Type,CFNumberType.sInt16Type,CFNumberType.sInt32Type,CFNumberType.sInt64Type,CFNumberType.charType,CFNumberType.shortType,CFNumberType.intType,CFNumberType.longType,CFNumberType.longLongType,CFNumberType.nsIntegerType:
+                case CFNumberType.sInt8Type,
+                     CFNumberType.sInt16Type,
+                     CFNumberType.sInt32Type,
+                     CFNumberType.sInt64Type,
+                     CFNumberType.charType,
+                     CFNumberType.shortType,
+                     CFNumberType.intType,
+                     CFNumberType.longType,
+                     CFNumberType.longLongType,
+                     CFNumberType.nsIntegerType:
                     result.append(number.oscIntData())
-                case CFNumberType.float32Type, CFNumberType.float64Type, CFNumberType.floatType, CFNumberType.doubleType, CFNumberType.cgFloatType:
+                case CFNumberType.float32Type,
+                     CFNumberType.float64Type,
+                     CFNumberType.floatType,
+                     CFNumberType.doubleType,
+                     CFNumberType.cgFloatType:
                     result.append(number.oscFloatData())
                 default:
                     continue
@@ -143,7 +168,7 @@ public class OSCMessage: OSCPacket {
                 }
                 result.append(timeTag.oscTimeTagData())
             } else if argument is OSCArgument {
-                // OSC Arguments T,F,N,I, have no data within the arguements.
+                // OSC Arguments T,F,N,I, have no data within the arguments.
                 continue
             }
         }
@@ -152,7 +177,7 @@ public class OSCMessage: OSCPacket {
 }
 
 extension String {
-    func oscStringData()->Data {
+    func oscStringData() -> Data {
         var data = self.data(using: .utf8)!
         for _ in 1...4 - data.count % 4 {
             var null = UInt8(0)
@@ -163,7 +188,7 @@ extension String {
 }
 
 extension Data {
-    func oscBlobData()->Data {
+    func oscBlobData() -> Data {
         let length = UInt32(self.count)
         var data = Data()
         data.append(length.bigEndian.data)
@@ -177,11 +202,11 @@ extension Data {
 }
 
 extension NSNumber {
-    func oscIntData()->Data {
+    func oscIntData() -> Data {
         return Data(Int32(truncating: self).bigEndian.data)
     }
     
-    func oscFloatData()->Data  {
+    func oscFloatData() -> Data  {
         var float: CFSwappedFloat32 = CFConvertFloatHostToSwapped(Float32(truncating: self))
         let size: Int = MemoryLayout<CFSwappedFloat32>.size
         let result: [UInt8] = withUnsafePointer(to: &float) {

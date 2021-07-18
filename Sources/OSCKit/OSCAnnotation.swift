@@ -191,7 +191,7 @@ public class OSCAnnotation {
         }
     }
     
-    public static func annotation(for message: OSCMessage, with style: AnnotationStyle, andType type: Bool) -> String {
+    public static func annotation(for message: OSCMessage, with style: AnnotationStyle, andType type: Bool = false) -> String {
         var string = message.addressPattern
         var argumentIndex = 0
         switch style {

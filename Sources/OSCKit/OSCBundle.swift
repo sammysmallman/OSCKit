@@ -28,29 +28,15 @@ import Foundation
 
 public class OSCBundle: OSCPacket {
     
-    public var timeTag: OSCTimeTag = OSCTimeTag()
-    public var elements: [OSCPacket] = []
-    public var replySocket: OSCSocket?
+    public var timeTag: OSCTimeTag
+    public var elements: [OSCPacket]
     
-    public init(with elements: [OSCPacket] = []) {
-        bundle(with: elements, timeTag: OSCTimeTag.init())
-    }
-    
-    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag) {
-        bundle(with: elements, timeTag: timeTag)
-    }
-    
-    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: OSCSocket?) {
-        bundle(with: elements, timeTag: timeTag, replySocket: replySocket)
-    }
-    
-    private func bundle(with elements: [OSCPacket] = [], timeTag: OSCTimeTag, replySocket: OSCSocket? = nil) {
+    public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag = .init()) {
         self.timeTag = timeTag
         self.elements = elements
-        self.replySocket = replySocket
     }
     
-    public func packetData()->Data {
+    public func packetData() -> Data {
         var result = "#bundle".oscStringData()
         let timeTagData = self.timeTag.oscTimeTagData()
         result.append(timeTagData)

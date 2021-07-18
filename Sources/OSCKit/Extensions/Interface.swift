@@ -1,5 +1,5 @@
 //
-//  Interface Extension.swift
+//  Interface.swift
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.

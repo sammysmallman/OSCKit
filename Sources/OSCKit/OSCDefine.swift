@@ -26,13 +26,12 @@
 
 import Foundation
 
-// Integer literals can be written as an octal number with a 0o prefix.
-internal let slipEnd: UInt8 = 0o0300         /* indicates end of packet */
-internal let slipEsc: UInt8 = 0o0333         /* indicates byte stuffing */
-internal let slipEscEnd: UInt8 = 0o0334     /* ESC ESC_END means END data byte */
-internal let slipEscEsc: UInt8 = 0o0335     /* ESC ESC_ESC means ESC data byte */
+internal let slipEnd: UInt8 = 0o0300        // indicates end of packet
+internal let slipEsc: UInt8 = 0o0333        // indicates byte stuffing
+internal let slipEscEnd: UInt8 = 0o0334     // ESC ESC_END means END data byte
+internal let slipEscEsc: UInt8 = 0o0335     // ESC ESC_ESC means ESC data byte
 
-public enum OSCTCPStreamFraming {
+public enum OSCTcpStreamFraming: Int {
     case SLIP   // http://www.rfc-editor.org/rfc/rfc1055.txt
     case PLH    // Packet Length Headers
 }
