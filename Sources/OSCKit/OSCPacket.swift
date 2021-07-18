@@ -27,7 +27,7 @@
 import Foundation
 
 public protocol OSCPacket {
-    
+
     func packetData() -> Data
-    
+
 }

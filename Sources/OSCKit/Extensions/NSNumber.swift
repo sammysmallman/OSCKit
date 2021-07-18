@@ -1,8 +1,8 @@
 //
-//  Interface.swift
+//  NSNumber.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 19/07/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,23 +25,22 @@
 //
 
 import Foundation
-import SystemConfiguration
-import NetUtils
 
-extension Interface {
-    #if os(OSX)
-    open var displayName: String {
-        guard let interfaces = SCNetworkInterfaceCopyAll() as? [SCNetworkInterface] else {
-            return ""
-        }
-        for interface in interfaces where SCNetworkInterfaceGetBSDName(interface) as String? == self.name {
-            return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
-        }
-        return ""
+extension NSNumber {
+
+    internal func oscIntData() -> Data {
+        return Data(Int32(truncating: self).bigEndian.data)
     }
 
-    open var displayText: String {
-        return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
+    internal func oscFloatData() -> Data {
+        var float: CFSwappedFloat32 = CFConvertFloatHostToSwapped(Float32(truncating: self))
+        let size: Int = MemoryLayout<CFSwappedFloat32>.size
+        let result: [UInt8] = withUnsafePointer(to: &float) {
+            $0.withMemoryRebound(to: UInt8.self, capacity: size) {
+                Array(UnsafeBufferPointer(start: $0, count: size))
+            }
+        }
+        return Data(result)
     }
-    #endif
+
 }

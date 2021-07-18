@@ -27,7 +27,7 @@
 import Foundation
 
 public protocol OSCUdpServerDelegate: AnyObject {
-    
+
     /// Tells the delegate the server received an `OSCPacket`.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -38,14 +38,14 @@ public protocol OSCUdpServerDelegate: AnyObject {
                 didReceivePacket packet: OSCPacket,
                 fromHost host: String,
                 port: UInt16)
-    
+
     /// Tells the delegate that the servers socket closed.
     /// - Parameters:
     ///   - server: The server that sent the message.
     ///   - error: An optional error if the servers socket closed with one.
     func server(_ server: OSCUdpServer,
                 socketDidCloseWithError error: Error?)
-    
+
     /// Tells the delegate the server received data but could not parse it as an `OSCPacket`.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -54,5 +54,5 @@ public protocol OSCUdpServerDelegate: AnyObject {
     func server(_ server: OSCUdpServer,
                 didReadData data: Data,
                 with error: Error)
-    
+
 }

@@ -27,7 +27,7 @@
 import Foundation
 
 public protocol OSCTcpClientDelegate: AnyObject {
-    
+
     /// Tells the delegate that the client connected to a server.
     /// - Parameters:
     ///   - client: The client that sent the message.
@@ -43,21 +43,21 @@ public protocol OSCTcpClientDelegate: AnyObject {
     ///   - error: An optional error the clients socket disconnected with.
     func client(_ client: OSCTcpClient,
                 didDisconnectWith error: Error?)
-    
+
     /// Tells the delegate that the client sent an `OSCPacket`.
     /// - Parameters:
     ///   - client: The client that sent the message.
     ///   - packet: The `OSCPacket` that was sent.
     func client(_ client: OSCTcpClient,
                 didSendPacket packet: OSCPacket)
-    
+
     /// Tells the delegate the clent received an `OSCPacket`.
     /// - Parameters:
     ///   - client: The client that sent the message.
     ///   - packet: The packet that was received.
     func client(_ client: OSCTcpClient,
                 didReceivePacket packet: OSCPacket)
-    
+
     /// Tells the delegate the clent received data but could not parse it as an `OSCPacket`.
     /// - Parameters:
     ///   - client: The client that sent the message.
@@ -66,5 +66,5 @@ public protocol OSCTcpClientDelegate: AnyObject {
     func client(_ client: OSCTcpClient,
                 didReadData data: Data,
                 with error: Error)
-    
+
 }

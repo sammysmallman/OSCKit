@@ -1,8 +1,8 @@
 //
-//  Interface.swift
+//  Date.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 18/07/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,23 +25,11 @@
 //
 
 import Foundation
-import SystemConfiguration
-import NetUtils
 
-extension Interface {
-    #if os(OSX)
-    open var displayName: String {
-        guard let interfaces = SCNetworkInterfaceCopyAll() as? [SCNetworkInterface] else {
-            return ""
-        }
-        for interface in interfaces where SCNetworkInterfaceGetBSDName(interface) as String? == self.name {
-            return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
-        }
-        return ""
+extension Date {
+
+    public func OSCTimeTag() -> OSCTimeTag {
+        OSCKit.OSCTimeTag(date: self)
     }
 
-    open var displayText: String {
-        return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
-    }
-    #endif
 }
