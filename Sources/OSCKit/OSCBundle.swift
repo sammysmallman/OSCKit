@@ -27,35 +27,36 @@
 import Foundation
 
 public class OSCBundle: OSCPacket {
-    
+
     public var timeTag: OSCTimeTag
     public var elements: [OSCPacket]
-    
+
     public init(with elements: [OSCPacket] = [], timeTag: OSCTimeTag = .init()) {
         self.timeTag = timeTag
         self.elements = elements
     }
-    
+
     public func packetData() -> Data {
         var result = "#bundle".oscStringData()
         let timeTagData = self.timeTag.oscTimeTagData()
         result.append(timeTagData)
         for element in elements {
-            if element is OSCMessage {
-                let data = (element as! OSCMessage).packetData()
+            if let message = element as? OSCMessage {
+                let data = message.packetData()
                 let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
                 result.append(size)
                 result.append(data)
+                continue
             }
-            if element is OSCBundle {
-                let data = (element as! OSCBundle).packetData()
+            if let bundle = element as? OSCBundle {
+                let data = bundle.packetData()
                 let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
                 result.append(size)
                 result.append(data)
+                continue
             }
         }
         return result
     }
-    
-}
 
+}

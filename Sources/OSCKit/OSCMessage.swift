@@ -27,13 +27,13 @@
 import Foundation
 
 public class OSCMessage: OSCPacket {
-    
+
     public private(set) var addressPattern: String
     public private(set) var addressParts: [String]  // Address Parts are components seperated by "/"
     public let arguments: [Any]
     public let typeTagString: String
     public let argumentTypes: [OSCArgument]
-    
+
     public init(with addressPattern: String, arguments: [Any] = []) {
         if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
             self.addressPattern = "/"
@@ -65,16 +65,15 @@ public class OSCMessage: OSCPacket {
                      CFNumberType.sInt64Type,
                      CFNumberType.charType,
                      CFNumberType.shortType,
-                     CFNumberType.intType
-                     ,CFNumberType.longType,
+                     CFNumberType.intType, CFNumberType.longType,
                      CFNumberType.longLongType,
                      CFNumberType.nsIntegerType:
                     newTypeTagString.append("i")
                     types.append(.oscInt)
                 case CFNumberType.float32Type,
-                     CFNumberType.float64Type, 
-                     CFNumberType.floatType, 
-                     CFNumberType.doubleType, 
+                     CFNumberType.float64Type,
+                     CFNumberType.floatType,
+                     CFNumberType.doubleType,
                      CFNumberType.cgFloatType:
                     newTypeTagString.append("f")
                     types.append(.oscFloat)
@@ -110,9 +109,11 @@ public class OSCMessage: OSCPacket {
         self.typeTagString = newTypeTagString
         self.argumentTypes = types
     }
-    
+
     public func readdress(to addressPattern: String) {
-        if addressPattern.isEmpty || addressPattern.count == 0 || addressPattern.first != "/" {
+        if addressPattern.isEmpty ||
+           addressPattern.count == 0 ||
+           addressPattern.first != "/" {
             self.addressPattern = "/"
         } else {
             self.addressPattern = addressPattern
@@ -121,25 +122,19 @@ public class OSCMessage: OSCPacket {
         parts.removeFirst()
         self.addressParts = parts
     }
-    
+
     public func packetData() -> Data {
-        var result = self.addressPattern.oscStringData()
-        result.append(self.typeTagString.oscStringData())
+        var result = addressPattern.oscStringData()
+        result.append(typeTagString.oscStringData())
         for argument in arguments {
             if argument is String {
-                guard let stringArgument = argument as? String else {
-                    break
-                }
+                guard let stringArgument = argument as? String else { break }
                 result.append(stringArgument.oscStringData())
             } else if argument is Data {
-                guard let blobArgument = argument as? Data else {
-                    break
-                }
+                guard let blobArgument = argument as? Data else { break }
                 result.append(blobArgument.oscBlobData())
             } else if argument is NSNumber {
-                guard let number = argument as? NSNumber else {
-                    break
-                }
+                guard let number = argument as? NSNumber else { break }
                 let numberType = CFNumberGetType(number)
                 switch numberType {
                 case CFNumberType.sInt8Type,
@@ -159,13 +154,10 @@ public class OSCMessage: OSCPacket {
                      CFNumberType.doubleType,
                      CFNumberType.cgFloatType:
                     result.append(number.oscFloatData())
-                default:
-                    continue
+                default: continue
                 }
             } else if argument is OSCTimeTag {
-                guard let timeTag = argument as? OSCTimeTag else {
-                    break
-                }
+                guard let timeTag = argument as? OSCTimeTag else { break }
                 result.append(timeTag.oscTimeTagData())
             } else if argument is OSCArgument {
                 // OSC Arguments T,F,N,I, have no data within the arguments.
@@ -175,47 +167,3 @@ public class OSCMessage: OSCPacket {
         return result
     }
 }
-
-extension String {
-    func oscStringData() -> Data {
-        var data = self.data(using: .utf8)!
-        for _ in 1...4 - data.count % 4 {
-            var null = UInt8(0)
-            data.append(&null, count: 1)
-        }
-        return data
-    }
-}
-
-extension Data {
-    func oscBlobData() -> Data {
-        let length = UInt32(self.count)
-        var data = Data()
-        data.append(length.bigEndian.data)
-        data.append(self)
-        while data.count % 4 != 0 {
-            var null = UInt8(0)
-            data.append(&null, count: 1)
-        }
-        return data
-    }
-}
-
-extension NSNumber {
-    func oscIntData() -> Data {
-        return Data(Int32(truncating: self).bigEndian.data)
-    }
-    
-    func oscFloatData() -> Data  {
-        var float: CFSwappedFloat32 = CFConvertFloatHostToSwapped(Float32(truncating: self))
-        let size: Int = MemoryLayout<CFSwappedFloat32>.size
-        let result: [UInt8] = withUnsafePointer(to: &float) {
-            $0.withMemoryRebound(to: UInt8.self, capacity: size) {
-                Array(UnsafeBufferPointer(start: $0, count: size))
-            }
-        }
-        return Data(result)
-    }
-}
-
-

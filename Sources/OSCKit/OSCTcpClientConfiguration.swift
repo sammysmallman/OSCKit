@@ -32,22 +32,22 @@ public struct OSCTcpClientConfiguration: Hashable {
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
     public let interface: String?
-    
+
     /// The host of the server that the client should connect to.
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public let host: String
-    
+
     /// The port of the host the client should send packets to.
     public let port: UInt16
-    
+
     /// The stream framing all OSCPackets will be encoded and decoded with by the client.
     ///
     /// There are two versions of OSC:
     /// - OSC 1.0 uses packet length headers.
     /// - OSC 1.1 uses the [SLIP protocol](http://www.rfc-editor.org/rfc/rfc1055.txt).
     public let streamFraming: OSCTcpStreamFraming
-    
+
     /// A configuration object that defines the behavior of a TCP client.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
@@ -64,6 +64,5 @@ public struct OSCTcpClientConfiguration: Hashable {
         self.host = host
         self.streamFraming = streamFraming
     }
-    
-}
 
+}

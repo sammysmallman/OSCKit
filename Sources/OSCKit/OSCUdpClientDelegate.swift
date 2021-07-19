@@ -27,7 +27,7 @@
 import Foundation
 
 public protocol OSCUdpClientDelegate: AnyObject {
-    
+
     /// Tells the delegate that the client sent an `OSCPacket`.
     /// - Parameters:
     ///   - client: The client that sent the message.
@@ -38,7 +38,7 @@ public protocol OSCUdpClientDelegate: AnyObject {
                 didSendPacket packet: OSCPacket,
                 fromHost host: String?,
                 port: UInt16?)
-    
+
     /// Tells the delegate that the client did not send an `OSCPacket` after attempting to send one.
     /// - Parameters:
     ///   - client: The client that sent the message.
@@ -51,12 +51,12 @@ public protocol OSCUdpClientDelegate: AnyObject {
                 fromHost host: String?,
                 port: UInt16?,
                 error: Error?)
-    
+
     /// Tells the delegate that the clients socket cloed with an error.
     /// - Parameters:
     ///   - server: The client that sent the message.
     ///   - error: The error the clients socket closed with.
     func client(_ client: OSCUdpClient,
                 socketDidCloseWithError error: Error)
-    
+
 }

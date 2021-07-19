@@ -30,54 +30,58 @@ import NetUtils
 
 /// An object that sends OSCPackets via UDP.
 public class OSCUdpClient: NSObject {
-    
-    public override var description: String { "OSCKit.OSCUdpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))" }
-    
+
+    public override var description: String {
+        "OSCUdpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))"
+    }
+
     /// A configuration object representing the current configurable state of the client.
     public var configuration: OSCUdpClientConfiguration {
-        OSCUdpClientConfiguration(interface: interface, host: host, port: port)
+        OSCUdpClientConfiguration(interface: interface,
+                                  host: host,
+                                  port: port)
     }
-    
+
     /// The clients UDP socket that all OSCPackets are sent from.
     private let socket: GCDAsyncUdpSocket = GCDAsyncUdpSocket()
-    
+
     /// The timeout for the send opeartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = 3
-    
+
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will uses the default interface.
     public var interface: String?
-    
+
     /// The destination the client should send UDP packets to.
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public var host: String
-    
+
     /// The port of the host the client should send packets to.
     public var port: UInt16
-    
+
     /// The dispatch queue that the client executes all delegate callbacks on.
     private let queue: DispatchQueue
-    
+
     /// The clients delegate.
     ///
     /// The delegate must conform to the `OSCUdpClientDelegate` protocol.
     public weak var delegate: OSCUdpClientDelegate?
-    
+
     /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
     ///
     /// This allows for a reference to a sent packet when the
     /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
-    private var sendingMessages: Dictionary<Int,SentMessage> = [:]
-    
+    private var sendingMessages: [Int: SentMessage] = [:]
+
     /// A sequential tag that is increased and associated with each message sent.
     ///
     /// The tag will wrap around to 0 if the maximum amount has been reached.
     /// This allows for a reference to a sent packet when the
     /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var tag: Int = 0
-    
+
     /// An OSC UDP Client.
     /// - Parameters:
     ///   - configuration: A configuration object that defines the behavior of a UDP client.
@@ -99,7 +103,7 @@ public class OSCUdpClient: NSObject {
         super.init()
         socket.setDelegate(self, delegateQueue: queue)
     }
-    
+
     /// An OSC UDP Client.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
@@ -108,10 +112,10 @@ public class OSCUdpClient: NSObject {
     ///   - delegate: The clients delegate.
     ///   - queue: The dispatch queue that the client executes all delegate callbacks on.
     public convenience init(interface: String? = nil,
-                     host: String,
-                     port: UInt16,
-                     delegate: OSCUdpClientDelegate? = nil,
-                     queue: DispatchQueue = .main) {
+                            host: String,
+                            port: UInt16,
+                            delegate: OSCUdpClientDelegate? = nil,
+                            queue: DispatchQueue = .main) {
         let configuration = OSCUdpClientConfiguration(interface: interface,
                                                       host: host,
                                                       port: port)
@@ -119,11 +123,11 @@ public class OSCUdpClient: NSObject {
                   delegate: delegate,
                   queue: queue)
     }
-    
+
     deinit {
         socket.synchronouslySetDelegate(nil)
     }
-    
+
     /// Send an OSCPacket from the client.
     /// - Parameter packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
     /// - Throws: An error if either the broadcast flag could not be set or the interface could not be bound to.
@@ -131,7 +135,7 @@ public class OSCUdpClient: NSObject {
     /// The broadcast flag will automatically be set if an interface has been set for the client and the host
     /// is either a directed or limited broadcast address.
     /// If an interface has not been set for the client the default OS interface will be used.
-    public func send(packet: OSCPacket) throws {
+    public func send(_ packet: OSCPacket) throws {
         if let interface = interface {
             let enableBroadcast = Interface.allInterfaces().contains(where: {
                 $0.name == interface && ($0.broadcastAddress == host || "255.255.255.255" == host )
@@ -151,12 +155,12 @@ public class OSCUdpClient: NSObject {
         socket.closeAfterSending()
         tag = tag == Int.max ? 0 : tag + 1
     }
-    
+
 }
 
 // MARK: - GCDAsyncUDPSocketDelegate
 extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
-    
+
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didSendDataWithTag tag: Int) {
         guard let sentMessage = sendingMessages[tag] else { return }
         sendingMessages[tag] = nil
@@ -165,7 +169,7 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                          fromHost: sentMessage.host,
                          port: sentMessage.port)
     }
-    
+
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
         guard let sentMessage = sendingMessages[tag] else { return }
         sendingMessages[tag] = nil
@@ -175,29 +179,29 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                          port: sentMessage.port,
                          error: error)
     }
-    
+
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket, withError error: Error?) {
         guard let error = error else { return }
         sendingMessages.removeAll()
-        delegate?.client(self, socketDidCloseWithError: error)
+        delegate?.client(self,
+                         socketDidCloseWithError: error)
     }
-    
+
 }
 
 extension OSCUdpClient {
-    
+
     /// An object that represents a packet sent to a server.
     private struct SentMessage {
-        
+
         /// The host of the client the message was sent to.
         let host: String?
-        
+
         /// The port of the client the message was sent to.
         let port: UInt16?
-        
+
         /// The message that was sent to the client.
         let packet: OSCPacket
-        
+
     }
 }
-

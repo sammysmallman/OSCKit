@@ -28,19 +28,19 @@ import Foundation
 
 /// A configuration object that defines the behavior of a UDP client.
 public struct OSCUdpClientConfiguration: Hashable {
-    
+
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
     public let interface: String?
-    
+
     /// The destination the client should send UDP packets to.
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public let host: String
-    
+
     /// The port of the host the client should send packets to.
     public let port: UInt16
-    
+
     /// A configuration object that defines the behavior of a UDP client.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
@@ -51,5 +51,5 @@ public struct OSCUdpClientConfiguration: Hashable {
         self.host = host
         self.port = port
     }
-    
+
 }

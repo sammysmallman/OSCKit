@@ -27,7 +27,7 @@
 import Foundation
 
 public protocol OSCTcpServerDelegate: AnyObject {
-    
+
     /// Tells the delegate the server accepted a new client connection.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -36,7 +36,7 @@ public protocol OSCTcpServerDelegate: AnyObject {
     func server(_ server: OSCTcpServer,
                 didConnectToClientWithHost host: String,
                 port: UInt16)
-    
+
     /// Tells the delegate the server disconnected from a client.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -45,7 +45,7 @@ public protocol OSCTcpServerDelegate: AnyObject {
     func server(_ server: OSCTcpServer,
                 didDisconnectFromClientWithHost host: String,
                 port: UInt16)
-    
+
     /// Tells the delegate the server received an `OSCPacket`.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -56,7 +56,7 @@ public protocol OSCTcpServerDelegate: AnyObject {
                 didReceivePacket packet: OSCPacket,
                 fromHost host: String,
                 port: UInt16)
-    
+
     /// Tells the delegate that the server sent an `OSCPacket` to a client.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -67,14 +67,14 @@ public protocol OSCTcpServerDelegate: AnyObject {
                 didSendPacket packet: OSCPacket,
                 toClientWithHost host: String,
                 port: UInt16)
-    
+
     /// Tells the delegate that the servers socket closed.
     /// - Parameters:
     ///   - server: The server that sent the message.
     ///   - error: An optional error if the servers socket closed with one.
     func server(_ server: OSCTcpServer,
                 socketDidCloseWithError error: Error?)
-    
+
     /// Tells the delegate the server received data but could not parse it as an `OSCPacket`.
     /// - Parameters:
     ///   - server: The server that sent the message.
@@ -83,5 +83,5 @@ public protocol OSCTcpServerDelegate: AnyObject {
     func server(_ server: OSCTcpServer,
                 didReadData data: Data,
                 with error: Error)
-    
+
 }

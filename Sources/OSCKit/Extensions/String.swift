@@ -1,8 +1,8 @@
 //
-//  Interface.swift
+//  String.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 18/07/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,23 +25,46 @@
 //
 
 import Foundation
-import SystemConfiguration
-import NetUtils
 
-extension Interface {
-    #if os(OSX)
-    open var displayName: String {
-        guard let interfaces = SCNetworkInterfaceCopyAll() as? [SCNetworkInterface] else {
-            return ""
-        }
-        for interface in interfaces where SCNetworkInterfaceGetBSDName(interface) as String? == self.name {
-            return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
-        }
-        return ""
+extension String {
+
+    /// An `NSRange` that represents the full range of the string.
+    internal var nsrange: NSRange {
+        return NSRange(location: 0, length: utf16.count)
     }
 
-    open var displayText: String {
-        return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
+    internal var doubleValue: Double? {
+        return Double(self)
     }
-    #endif
+
+    internal var floatValue: Float? {
+        return Float(self)
+    }
+
+    internal var integerValue: Int? {
+        return Int(self)
+    }
+
+    internal var isNumber: Bool {
+        if Double(self) != nil {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    internal func substring(with nsrange: NSRange) -> Substring? {
+        guard let range = Range(nsrange, in: self) else { return nil }
+        return self[range]
+    }
+
+    internal func oscStringData() -> Data {
+        var data = self.data(using: .utf8)!
+        for _ in 1...4 - data.count % 4 {
+            var null = UInt8(0)
+            data.append(&null, count: 1)
+        }
+        return data
+    }
+
 }

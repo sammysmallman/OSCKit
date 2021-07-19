@@ -32,14 +32,14 @@ public struct OSCUdpServerConfiguration: Hashable {
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
     public let interface: String?
-    
+
     /// The port the server should listen for packets on.
     public let port: UInt16
-    
+
     /// A `Set` of  multicast groups that the server should join.
     /// A multiverse group should be an IP address in the range 224.0.0.0 through 239.255.255.255.
     public let multicastGroups: Set<String>
-    
+
     /// A configuration object that defines the behavior of a UDP server.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address
@@ -53,5 +53,5 @@ public struct OSCUdpServerConfiguration: Hashable {
         self.port = port
         self.multicastGroups = multicastGroups
     }
-    
+
 }

@@ -29,14 +29,16 @@ import CocoaAsyncSocket
 
 /// A helper object for OSC TCP operations.
 internal struct OSCTcp {
-    
+
     /// Send an `OSCPacket` with a socket.
     /// - Parameters:
     ///   - packet: The `OSCPacket` to be sent.
     ///   - streamFraming: The method in with the packet will be encoded.
     ///   - socket: A TCP socket.
-    ///   - timeout: The timeout for the send opeartion. If the timeout value is negative, the send operation will not use a timeout.
-    ///   - tag: A convenienve tag, reported back with the GCDAsyncSocketDelegate method `socket(_:didWriteDataWithTag:)`.
+    ///   - timeout: The timeout for the send opeartion. If the timeout value is negative,
+    ///              the send operation will not use a timeout.
+    ///   - tag: A convenienve tag, reported back with the
+    ///          GCDAsyncSocketDelegate method `socket(_:didWriteDataWithTag:)`.
     static func send(packet: OSCPacket,
                      streamFraming: OSCTcpStreamFraming,
                      with socket: GCDAsyncSocket,
@@ -86,7 +88,7 @@ internal struct OSCTcp {
             socket.write(plhData, withTimeout: timeout, tag: tag)
         }
     }
-    
+
     /// An object that contains the current state of the received data from a clients socket.
     ///
     /// This object contains the streaming data as it is received as well as a boolean value that
@@ -98,11 +100,11 @@ internal struct OSCTcp {
 
         var data: Data
         var danglingESC: Bool
-        
+
         init(data: Data = .init(), danglingESC: Bool = false) {
             self.data = data
             self.danglingESC = danglingESC
         }
     }
-    
+
 }
