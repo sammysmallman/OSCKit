@@ -27,7 +27,17 @@
 import Foundation
 
 /// A configuration object that defines the behavior of a UDP server.
-public struct OSCUdpServerConfiguration: Hashable {
+@objc(OSCUdpServerConfiguration) public class OSCUdpServerConfiguration: NSObject, NSSecureCoding, Codable {
+
+    /// A textual representation of this instance.
+    public override var description: String {
+        """
+        OSCKit.OSCUdpServerConfiguration(\
+        interface: \(String(describing: interface)), \
+        port: \(port), \
+        multicastGroups: Set(\(multicastGroups)))
+        """
+    }
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
@@ -52,6 +62,42 @@ public struct OSCUdpServerConfiguration: Hashable {
         self.interface = interface
         self.port = port
         self.multicastGroups = multicastGroups
+    }
+
+    // MARK: NSSecureCoding
+
+    /// A Boolean value that indicates whether or not the class supports secure coding.
+    ///
+    /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
+    public static var supportsSecureCoding: Bool = true
+
+    /// A key that defines the `interface` of an `OSCUdpServer`.
+    private static let interfaceKey = "interfaceKey"
+
+    /// A key that defines the `port` of an `OSCUdpServer`.
+    private static let portKey = "portKey"
+
+    /// A key that defines the `multicastGroups` of an `OSCUdpServer`.
+    private static let multicastGroupsKey = "multicastGroupssKey"
+
+    /// A configuration object that defines the behavior of a UDP server from data in a given unarchiver.
+    public required init?(coder: NSCoder) {
+        guard let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?,
+              let multicastGroups = coder.decodeObject(forKey: Self.multicastGroupsKey) as? Set<String>
+        else {
+            return nil
+        }
+        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
+        self.multicastGroups = multicastGroups
+    }
+
+    /// Encodes this instance using a given archiver.
+    public func encode(with coder: NSCoder) {
+        coder.encode(interface, forKey: Self.interfaceKey)
+        // Port could potentially be encoded as an NSInteger...
+        coder.encode(port.bigEndian.data, forKey: Self.portKey)
+        coder.encode(multicastGroups, forKey: Self.multicastGroupsKey)
     }
 
 }

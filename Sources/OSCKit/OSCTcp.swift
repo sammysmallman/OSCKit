@@ -44,7 +44,7 @@ internal struct OSCTcp {
                      with socket: GCDAsyncSocket,
                      timeout: TimeInterval,
                      tag: Int) {
-        let packetData = packet.packetData()
+        let packetData = packet.data()
         guard packetData.isEmpty == false else { return }
         switch streamFraming {
         case .SLIP: // SLIP Protocol: http://www.rfc-editor.org/rfc/rfc1055.txt

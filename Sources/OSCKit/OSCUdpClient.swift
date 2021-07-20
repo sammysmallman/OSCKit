@@ -31,8 +31,14 @@ import NetUtils
 /// An object that sends OSCPackets via UDP.
 public class OSCUdpClient: NSObject {
 
+    /// A textual representation of this instance.
     public override var description: String {
-        "OSCUdpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))"
+        """
+        OSCKit.OSCUdpClient(\
+        interface: \(String(describing: interface)), \
+        host: \(host), \
+        port: \(port))
+        """
     }
 
     /// A configuration object representing the current configurable state of the client.
@@ -147,7 +153,7 @@ public class OSCUdpClient: NSObject {
         sendingMessages[tag] = SentMessage(host: socket.localHost(),
                                            port: socket.localPort(),
                                            packet: packet)
-        socket.send(packet.packetData(),
+        socket.send(packet.data(),
                     toHost: host,
                     port: port,
                     withTimeout: timeout,

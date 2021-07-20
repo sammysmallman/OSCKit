@@ -36,20 +36,20 @@ public class OSCBundle: OSCPacket {
         self.elements = elements
     }
 
-    public func packetData() -> Data {
+    public func data() -> Data {
         var result = "#bundle".oscStringData()
         let timeTagData = self.timeTag.oscTimeTagData()
         result.append(timeTagData)
         for element in elements {
             if let message = element as? OSCMessage {
-                let data = message.packetData()
+                let data = message.data()
                 let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
                 result.append(size)
                 result.append(data)
                 continue
             }
             if let bundle = element as? OSCBundle {
-                let data = bundle.packetData()
+                let data = bundle.data()
                 let size = withUnsafeBytes(of: Int32(data.count).bigEndian) { Data($0) }
                 result.append(size)
                 result.append(data)

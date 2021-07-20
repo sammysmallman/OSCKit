@@ -30,8 +30,15 @@ import CocoaAsyncSocket
 /// An object that establishes a connection to a server via TCP and can send and receive OSCPackets.
 public class OSCTcpClient: NSObject {
 
+    /// A textual representation of this instance.
     public override var description: String {
-        "OSCUTcpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))"
+        """
+        OSCKit.OSCUTcpClient(\
+        interface: \(String(describing: interface)), \
+        host: \(host), \
+        port: \(port), \
+        streamFraming: \(streamFraming))
+        """
     }
 
     /// A configuration object representing the current configurable state of the client.
@@ -190,10 +197,8 @@ public class OSCTcpClient: NSObject {
     /// Disconnect the client from a server.
     public func disconnect() {
         guard isConnected else { return }
-        queue.async {
-            self.socket.disconnect()
-            self.socket.synchronouslySetDelegateQueue(nil)
-        }
+        socket.disconnect()
+        socket.synchronouslySetDelegateQueue(nil)
     }
 
     /// Send an `OSCPacket`.
