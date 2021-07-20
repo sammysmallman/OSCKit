@@ -27,7 +27,21 @@
 import Foundation
 
 /// A configuration object that defines the behavior of a UDP client.
-public struct OSCUdpClientConfiguration: Hashable {
+@objc(OSCUdpClientConfiguration) public class OSCUdpClientConfiguration: NSObject, NSSecureCoding, Codable {
+
+    /// A Boolean value that indicates whether or not the class supports secure coding.
+    ///
+    /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
+    public static var supportsSecureCoding: Bool = true
+
+    /// A key that defines the `interface` of an `OSCUdpClient`.
+    private static let interfaceKey = "interfaceKey"
+
+    /// A key that defines the `host` of an `OSCUdpClient`.
+    private static let hostKey = "hostKey"
+
+    /// A key that defines the `port` of an `OSCUdpClient`.
+    private static let portKey = "portKey"
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
@@ -41,6 +55,11 @@ public struct OSCUdpClientConfiguration: Hashable {
     /// The port of the host the client should send packets to.
     public let port: UInt16
 
+    /// A textual representation of this instance.
+    public override var description: String {
+        "OSCUdpClientConfiguration(interface: \(String(describing: interface)), host: \(host), port: \(port))"
+    }
+
     /// A configuration object that defines the behavior of a UDP client.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
@@ -50,6 +69,25 @@ public struct OSCUdpClientConfiguration: Hashable {
         self.interface = interface
         self.host = host
         self.port = port
+    }
+
+    /// A configuration object that defines the behavior of a UDP client from data in a given unarchiver.
+    public required init?(coder: NSCoder) {
+        guard let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as String?,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?
+        else {
+            return nil
+        }
+        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.host = host
+        self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
+    }
+
+    /// Encodes this instance using a given archiver.
+    public func encode(with coder: NSCoder) {
+        coder.encode(interface, forKey: Self.interfaceKey)
+        coder.encode(host, forKey: Self.hostKey)
+        coder.encode(port.bigEndian.data, forKey: Self.portKey)
     }
 
 }

@@ -31,6 +31,7 @@ import NetUtils
 /// An object that sends OSCPackets via UDP.
 public class OSCUdpClient: NSObject {
 
+    /// A textual representation of this instance.
     public override var description: String {
         "OSCUdpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))"
     }

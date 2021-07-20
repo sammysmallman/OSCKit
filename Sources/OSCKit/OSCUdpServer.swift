@@ -44,6 +44,7 @@ public class OSCUdpServer: NSObject {
         }
     }
 
+    /// A textual representation of this instance.
     public override var description: String {
         "OSCUdpServer(interface: \(String(describing: interface)), port: \(port), groups: Set(\(multicastGroups)))"
     }

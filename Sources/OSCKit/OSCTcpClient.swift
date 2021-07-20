@@ -30,6 +30,7 @@ import CocoaAsyncSocket
 /// An object that establishes a connection to a server via TCP and can send and receive OSCPackets.
 public class OSCTcpClient: NSObject {
 
+    /// A textual representation of this instance.
     public override var description: String {
         "OSCUTcpClient(interface: \(String(describing: interface)), host: \(host), port: \(port))"
     }
