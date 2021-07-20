@@ -29,19 +29,15 @@ import Foundation
 /// A configuration object that defines the behavior of a UDP client.
 @objc(OSCUdpClientConfiguration) public class OSCUdpClientConfiguration: NSObject, NSSecureCoding, Codable {
 
-    /// A Boolean value that indicates whether or not the class supports secure coding.
-    ///
-    /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
-    public static var supportsSecureCoding: Bool = true
-
-    /// A key that defines the `interface` of an `OSCUdpClient`.
-    private static let interfaceKey = "interfaceKey"
-
-    /// A key that defines the `host` of an `OSCUdpClient`.
-    private static let hostKey = "hostKey"
-
-    /// A key that defines the `port` of an `OSCUdpClient`.
-    private static let portKey = "portKey"
+    /// A textual representation of this instance.
+    public override var description: String {
+        """
+        OSCKit.OSCUdpClientConfiguration(\
+        interface: \(String(describing: interface)), \
+        host: \(host), \
+        port: \(port))
+        """
+    }
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
@@ -55,11 +51,6 @@ import Foundation
     /// The port of the host the client should send packets to.
     public let port: UInt16
 
-    /// A textual representation of this instance.
-    public override var description: String {
-        "OSCUdpClientConfiguration(interface: \(String(describing: interface)), host: \(host), port: \(port))"
-    }
-
     /// A configuration object that defines the behavior of a UDP client.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
@@ -70,6 +61,22 @@ import Foundation
         self.host = host
         self.port = port
     }
+
+    // MARK: NSSecureCoding
+
+    /// A Boolean value that indicates whether or not the class supports secure coding.
+    ///
+    /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
+    public static var supportsSecureCoding: Bool = true
+
+    /// A key that defines the `interface` of an `OSCUdpClient`.
+    private static let interfaceKey = "interfaceKey"
+
+    /// A key that defines the `host` of an `OSCUdpClient`.
+    private static let hostKey = "hostKey"
+
+    /// A key that defines the `port` of an `OSCUdpClient`.
+    private static let portKey = "portKey"
 
     /// A configuration object that defines the behavior of a UDP client from data in a given unarchiver.
     public required init?(coder: NSCoder) {
@@ -87,6 +94,7 @@ import Foundation
     public func encode(with coder: NSCoder) {
         coder.encode(interface, forKey: Self.interfaceKey)
         coder.encode(host, forKey: Self.hostKey)
+        // Port could potentially be encoded as an NSInteger...
         coder.encode(port.bigEndian.data, forKey: Self.portKey)
     }
 

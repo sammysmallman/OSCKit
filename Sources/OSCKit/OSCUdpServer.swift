@@ -46,7 +46,12 @@ public class OSCUdpServer: NSObject {
 
     /// A textual representation of this instance.
     public override var description: String {
-        "OSCUdpServer(interface: \(String(describing: interface)), port: \(port), groups: Set(\(multicastGroups)))"
+        """
+        OSCKit.OSCUdpServer(\
+        interface: \(String(describing: interface)), \
+        port: \(port), \
+        multicastGroups: Set(\(multicastGroups)))
+        """
     }
 
     /// A configuration object representing the current configurable state of the server.

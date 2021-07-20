@@ -32,7 +32,12 @@ public class OSCTcpServer: NSObject {
 
     /// A textual representation of this instance.
     public override var description: String {
-        "OSCTcpServer(interface: \(String(describing: interface)), port: \(port))"
+        """
+        OSCKit.OSCTcpServer(\
+        interface: \(String(describing: interface)), \
+        port: \(port), \
+        streamFraming: \(streamFraming))
+        """
     }
 
     /// A configuration object representing the current configurable state of the server.

@@ -123,7 +123,7 @@ public class OSCMessage: OSCPacket {
         self.addressParts = parts
     }
 
-    public func packetData() -> Data {
+    public func data() -> Data {
         var result = addressPattern.oscStringData()
         result.append(typeTagString.oscStringData())
         for argument in arguments {
