@@ -3,7 +3,7 @@
 </p>
 
 # OSCKit
-The OSCKit package provides the classes needed for your apps to communicate with [OSC](http://opensoundcontrol.org/README.html) devices over an IP network. 
+The OSCKit package provides the classes needed for your apps to communicate among computers, sound synthesizers, and other multimedia devices via [OSC](http://opensoundcontrol.org/README.html) over an IP network. 
 
 ## Overview
 Use the OSCKit package to create client or server objects. In its simplest form a client can send a packet, either a [Message](http://opensoundcontrol.org/spec-1_0.html#osc-messages) or [Bundle](http://opensoundcontrol.org/spec-1_0.html#osc-bundles) to a server. A server, when listening, can receive these packets and action upon them. Depending on a client or server using either UDP or TCP as a transport, there are varying levels of fuctionality and delegate methods for you to take advantage of.
