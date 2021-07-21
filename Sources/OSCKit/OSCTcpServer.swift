@@ -216,6 +216,28 @@ public class OSCTcpServer: NSObject {
         }
     }
 
+    /// Send the raw data of an `OSCPacket` to all connected clients.
+    /// - Parameter data: Data from an `OSCMessage` or `OSCBundle`.
+    /// - Throws: An `OSCParserError` if a packet can't be parsed from the data.
+    public func send(_ data: Data) throws {
+        let packet = try OSCParser.packet(from: data)
+        queue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.sockets.forEach { socket in
+                strongSelf.socket.readData(withTimeout: strongSelf.timeout, tag: 0)
+                strongSelf.sendingMessages[strongSelf.tag] = SentMessage(host: socket.value.host,
+                                                                         port: socket.value.port,
+                                                                         packet: packet)
+                OSCTcp.send(data: data,
+                            streamFraming: strongSelf.streamFraming,
+                            with: socket.key,
+                            timeout: strongSelf.timeout,
+                            tag: strongSelf.tag)
+                strongSelf.tag = strongSelf.tag == Int.max ? 0 : strongSelf.tag + 1
+            }
+        }
+    }
+
     /// Send an `OSCPacket` to a connected client.
     /// - Parameters:
     ///   - packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
@@ -234,6 +256,34 @@ public class OSCTcpServer: NSObject {
                                                                      port: socket.value.port,
                                                                      packet: packet)
             OSCTcp.send(packet: packet,
+                        streamFraming: strongSelf.streamFraming,
+                        with: socket.key,
+                        timeout: strongSelf.timeout,
+                        tag: strongSelf.tag)
+            strongSelf.tag = strongSelf.tag == Int.max ? 0 : strongSelf.tag + 1
+        }
+    }
+
+    /// Send the raw data of an `OSCPacket` to a connected client.
+    /// - Parameters:
+    ///   - data: Data from an `OSCMessage` or `OSCBundle`.
+    ///   - host: The host of the client the packet should be sent to.
+    ///   - port: The port of the client the packet should be sent to.
+    /// - Throws: An `OSCParserError` if a packet can't be parsed from the data.
+    public func send(_ data: Data, to host: String, port: UInt16) throws {
+        let packet = try OSCParser.packet(from: data)
+        queue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            guard let socket = strongSelf.sockets.first(where: {
+                $0.value.host == host && $0.value.port == port
+            }) else {
+                return
+            }
+            strongSelf.socket.readData(withTimeout: strongSelf.timeout, tag: 0)
+            strongSelf.sendingMessages[strongSelf.tag] = SentMessage(host: socket.value.host,
+                                                                     port: socket.value.port,
+                                                                     packet: packet)
+            OSCTcp.send(data: data,
                         streamFraming: strongSelf.streamFraming,
                         with: socket.key,
                         timeout: strongSelf.timeout,

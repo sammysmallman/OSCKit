@@ -201,7 +201,7 @@ public class OSCTcpClient: NSObject {
         socket.synchronouslySetDelegateQueue(nil)
     }
 
-    /// Send an `OSCPacket`.
+    /// Send an `OSCPacket` to the connected server.
     /// - Parameter packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
     /// - Throws: An error if the client is not already connected and connecting causes an error.
     ///
@@ -214,6 +214,29 @@ public class OSCTcpClient: NSObject {
             strongSelf.socket.readData(withTimeout: strongSelf.timeout, tag: 0)
             strongSelf.sendingMessages[strongSelf.tag] = packet
             OSCTcp.send(packet: packet,
+                        streamFraming: strongSelf.streamFraming,
+                        with: strongSelf.socket,
+                        timeout: strongSelf.timeout,
+                        tag: strongSelf.tag)
+            strongSelf.tag = strongSelf.tag == Int.max ? 0 : strongSelf.tag + 1
+        }
+    }
+
+    /// Send the raw data of an `OSCPacket` to the connected server.
+    /// - Parameter data: Data from an `OSCMessage` or `OSCBundle`.
+    /// - Throws: An error if a packet can't be parsed from the data or if the client is not
+    ///           already connected and connecting causes an error.
+    ///
+    /// If  the client is not already connected to a server `connect()` will be called first.
+    public func send(_ data: Data) throws {
+        try connect()
+        let packet = try OSCParser.packet(from: data)
+        guard isConnected else { return }
+        queue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.socket.readData(withTimeout: strongSelf.timeout, tag: 0)
+            strongSelf.sendingMessages[strongSelf.tag] = packet
+            OSCTcp.send(data: data,
                         streamFraming: strongSelf.streamFraming,
                         with: strongSelf.socket,
                         timeout: strongSelf.timeout,

@@ -162,6 +162,36 @@ public class OSCUdpClient: NSObject {
         tag = tag == Int.max ? 0 : tag + 1
     }
 
+    /// Send the raw data of an `OSCPacket` from the client.
+    /// - Parameter data: Data from an `OSCMessage` or `OSCBundle`.
+    /// - Throws: An error if a packet can't be parsed from the data, the broadcast flag could not
+    ///           be set or the interface could not be bound to.
+    ///
+    /// The broadcast flag will automatically be set if an interface has been set for the client and the host
+    /// is either a directed or limited broadcast address.
+    /// If an interface has not been set for the client the default OS interface will be used.
+    public func send(_ data: Data) throws {
+        let packet = try OSCParser.packet(from: data)
+        if let interface = interface {
+            let enableBroadcast = Interface.allInterfaces().contains(where: {
+                $0.name == interface && ($0.broadcastAddress == host || "255.255.255.255" == host )
+            })
+            try socket.enableBroadcast(enableBroadcast)
+            // Port 0 means that the OS should choose a random ephemeral port for this socket.
+            try socket.bind(toPort: 0, interface: interface)
+        }
+        sendingMessages[tag] = SentMessage(host: socket.localHost(),
+                                           port: socket.localPort(),
+                                           packet: packet)
+        socket.send(data,
+                    toHost: host,
+                    port: port,
+                    withTimeout: timeout,
+                    tag: tag)
+        socket.closeAfterSending()
+        tag = tag == Int.max ? 0 : tag + 1
+    }
+
 }
 
 // MARK: - GCDAsyncUDPSocketDelegate

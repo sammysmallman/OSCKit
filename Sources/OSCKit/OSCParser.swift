@@ -27,7 +27,7 @@
 import Foundation
 
 internal struct OSCParser {
-    
+
     private init() {}
 
     static func packet(from data: Data) throws -> OSCPacket {

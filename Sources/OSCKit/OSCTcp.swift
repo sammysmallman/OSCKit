@@ -46,8 +46,28 @@ internal struct OSCTcp {
                      with socket: GCDAsyncSocket,
                      timeout: TimeInterval,
                      tag: Int) {
-        let packetData = packet.data()
-        guard packetData.isEmpty == false else { return }
+        send(data: packet.data(),
+             streamFraming: streamFraming,
+             with: socket,
+             timeout: timeout,
+             tag: tag)
+    }
+
+    /// Send the raw data of an `OSCPacket` with a socket.
+    /// - Parameters:
+    ///   - data: Data from an `OSCPacket`.
+    ///   - streamFraming: The method the packet will be encoded with.
+    ///   - socket: A TCP socket.
+    ///   - timeout: The timeout for the send opeartion. If the timeout value is negative,
+    ///              the send operation will not use a timeout.
+    ///   - tag: A convenienve tag, reported back with the
+    ///          GCDAsyncSocketDelegate method `socket(_:didWriteDataWithTag:)`.
+    static func send(data: Data,
+                     streamFraming: OSCTcpStreamFraming,
+                     with socket: GCDAsyncSocket,
+                     timeout: TimeInterval,
+                     tag: Int) {
+        guard data.isEmpty == false else { return }
         switch streamFraming {
         case .SLIP: // SLIP Protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
             var slipData = Data()
@@ -56,7 +76,7 @@ internal struct OSCTcp {
              * have accumulated in the receiver due to line noise
              */
             slipData.append(slipEnd.data)
-            for byte in packetData {
+            for byte in data {
                 if byte == slipEnd {
                     /*
                      * If it's the same code as an END character, we send a
@@ -84,9 +104,9 @@ internal struct OSCTcp {
         case .PLH:
             // Outgoing OSC Packets are framed using a packet length header
             var plhData = Data()
-            let size = Data(UInt32(packetData.count).byteArray())
+            let size = Data(UInt32(data.count).byteArray())
             plhData.append(size)
-            plhData.append(packetData)
+            plhData.append(data)
             socket.write(plhData, withTimeout: timeout, tag: tag)
         }
     }
