@@ -30,10 +30,12 @@ import CocoaAsyncSocket
 /// A helper object for OSC TCP operations.
 internal struct OSCTcp {
 
+    private init() {}
+
     /// Send an `OSCPacket` with a socket.
     /// - Parameters:
     ///   - packet: The `OSCPacket` to be sent.
-    ///   - streamFraming: The method in with the packet will be encoded.
+    ///   - streamFraming: The method the packet will be encoded with.
     ///   - socket: A TCP socket.
     ///   - timeout: The timeout for the send opeartion. If the timeout value is negative,
     ///              the send operation will not use a timeout.
@@ -87,6 +89,131 @@ internal struct OSCTcp {
             plhData.append(packetData)
             socket.write(plhData, withTimeout: timeout, tag: tag)
         }
+    }
+
+    /// Decode and dispatch SLIP encoded TCP `OSCPacket`s.
+    /// - Parameters:
+    ///   - slipData: The latest data read from the socket.
+    ///   - state: A `SocketState` object that contains the current state of the received data from a socket.
+    ///   - dispatchHandler: A dispatch handler, called when a `OSCPacket` has successfully been parsed.
+    ///   - packet: `OSCPacket`.
+    /// - Throws: An `OSCParserError`
+    static func decodeSLIP(_ slipData: Data,
+                           with state: inout OSCTcp.SocketState,
+                           dispatchHandler: (_ packet: OSCPacket) -> Void) throws {
+        var index = 0
+        // We're using a while loop rather than a for in .enumerated()
+        // because we may need to adjust the index when we hit an ESC character.
+        while index < slipData.count {
+            let char = slipData[index]
+            index += 1
+            if state.danglingESC {
+                state.danglingESC = false
+                switch char {
+                case slipEscEnd:
+                    state.data.append(slipEnd.data)
+                case slipEscEsc:
+                    state.data.append(slipEsc.data)
+                default:
+                    // If byte is not one of these two, then we have a protocol violation.
+                    // The best bet seems to be to leave the byte alone and just stuff
+                    // it into the packet http://www.rfc-editor.org/rfc/rfc1055.txt (Page 6)
+                    state.data.append(Data([char]))
+                }
+            } else {
+                switch char {
+                case slipEnd:
+                    // A minor optimization: if there is no data in the packet, ignore it.
+                    // This is meant to avoid bothering IP with all the empty packets generated
+                    // by the duplicate END characters which are in turn sent to try to detect
+                    // line noise. http://www.rfc-editor.org/rfc/rfc1055.txt (Page 5)
+                    guard !state.data.isEmpty else { break }
+                    do {
+                        let packet = try OSCParser.packet(from: state.data)
+                        state.data.removeAll()
+                        dispatchHandler(packet)
+                    } catch {
+                        throw error
+                    }
+                case slipEsc:
+                    if index < slipData.count {
+                        // We added 1 to the index when moving into this loop
+                        // so this will be the next char along from the char
+                        // that we got at the beginning of this loop.
+                        let nextChar = slipData[index]
+                        // This is why we're using a while loop.
+                        // ESC characters mean we jump forward 1.
+                        index += 1
+                        // We're essentially checking whether two bytes correctly
+                        // represent an escaped character. If they do then we're adding
+                        // the single escaped character to the data and then treating
+                        // it as if we received a single byte by skipping over
+                        // the extra escaped one.
+                        switch nextChar {
+                        case slipEscEnd:
+                            state.data.append(slipEnd.data)
+                        case slipEscEsc:
+                            state.data.append(slipEsc.data)
+                        default:
+                            // If byte is not one of these two, then we have a
+                            // protocol violation. The best bet seems to be to
+                            // leave the byte alone and just stuff it into the packet
+                            // http://www.rfc-editor.org/rfc/rfc1055.txt (Page 6)
+                            state.data.append(Data([char]))
+                        }
+                    } else {
+                        // The incoming raw data stopped in the middle of an escape sequence.
+                        state.danglingESC = true
+                    }
+                default:
+                    state.data.append(Data([char]))
+                }
+            }
+        }
+    }
+
+    /// Decode and dispatch PLH (Packet Length Header) encoded TCP `OSCPacket`s.
+    /// - Parameters:
+    ///   - plhData: The latest data read from the socket.
+    ///   - data: The current received data from a socket.
+    ///   - dispatchHandler: A dispatch handler, called when a `OSCPacket` has successfully been parsed.
+    ///   - packet: `OSCPacket`
+    /// - Throws: An `OSCParserError`.
+    static func decodePLH(_ plhData: Data,
+                          with data: inout Data,
+                          dispatchHandler: (_ packet: OSCPacket) -> Void) throws {
+        var buffer = Data()
+        // If there is data in the buffer, append it to the
+        // beginning of our Data before working with it.
+        if data.isEmpty {
+            buffer.append(data)
+        }
+        buffer.append(plhData)
+        // Start iterating over the data as soon as we
+        // have something greater than UInt32. The first
+        // 4 bytes will hopefully be the packet size so
+        // with any luck we'll have that to process.
+        while buffer.count > 4 {
+            // Get the packet length of our first message.
+            let packetLength = buffer.subdata(in: buffer.startIndex..<buffer.startIndex + 4)
+                .withUnsafeBytes { $0.load(as: Int32.self) }
+                .bigEndian
+            // Check to see if we actually have enough data to process.
+            if buffer.count >= packetLength + 4, packetLength > 0 {
+                let dataRange = buffer.startIndex + 4..<buffer.startIndex + Int(packetLength + 4)
+                let possibleOSCData = buffer.subdata(in: dataRange)
+                do {
+                    let packet = try OSCParser.packet(from: possibleOSCData)
+                    buffer.removeSubrange(dataRange)
+                    dispatchHandler(packet)
+                } catch {
+                    buffer.remove(at: 0)
+                }
+            } else {
+                buffer.remove(at: 0)
+            }
+        }
+        data = buffer
     }
 
     /// An object that contains the current state of the received data from a clients socket.

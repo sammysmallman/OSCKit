@@ -268,9 +268,9 @@ extension OSCTcpServer: GCDAsyncSocketDelegate {
         do {
             switch streamFraming {
             case .SLIP:
-                try OSCParser.decodeSLIP(data,
-                                         with: &sockets[sock]!.state,
-                                         dispatchHandler: { [weak self] packet in
+                try OSCTcp.decodeSLIP(data,
+                                      with: &sockets[sock]!.state,
+                                      dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate,
                           let host = sock.connectedHost else { return }
@@ -280,9 +280,9 @@ extension OSCTcpServer: GCDAsyncSocketDelegate {
                                     port: sock.connectedPort)
                 })
             case .PLH:
-                try OSCParser.decodePLH(data,
-                                        with: &sockets[sock]!.state.data,
-                                        dispatchHandler: { [weak self] packet in
+                try OSCTcp.decodePLH(data,
+                                     with: &sockets[sock]!.state.data,
+                                     dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate,
                           let host = sock.connectedHost else { return }

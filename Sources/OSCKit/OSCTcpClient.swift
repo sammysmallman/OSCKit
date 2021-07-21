@@ -235,17 +235,17 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
         do {
             switch streamFraming {
             case .SLIP:
-                try OSCParser.decodeSLIP(data,
-                                         with: &state,
-                                         dispatchHandler: { [weak self] packet in
+                try OSCTcp.decodeSLIP(data,
+                                      with: &state,
+                                      dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
                     delegate.client(strongSelf, didReceivePacket: packet)
                 })
             case .PLH:
-                try OSCParser.decodePLH(data,
-                                        with: &state.data,
-                                        dispatchHandler: { [weak self] packet in
+                try OSCTcp.decodePLH(data,
+                                     with: &state.data,
+                                     dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
                     delegate.client(strongSelf, didReceivePacket: packet)
