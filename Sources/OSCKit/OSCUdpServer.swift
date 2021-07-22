@@ -26,6 +26,7 @@
 
 import Foundation
 import CocoaAsyncSocket
+import CoreOSC
 
 /// An object that receives OSCPackets via UDP.
 public class OSCUdpServer: NSObject {

@@ -26,6 +26,7 @@
 
 import Foundation
 import CocoaAsyncSocket
+import CoreOSC
 
 /// An object that accepts connections from TCP clients and can send & receive OSCPackets to and from them.
 public class OSCTcpServer: NSObject {

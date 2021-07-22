@@ -25,6 +25,7 @@
 //
 
 import Foundation
+import CoreOSC
 
 public protocol OSCUdpServerDelegate: AnyObject {
 

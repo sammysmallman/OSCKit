@@ -26,9 +26,25 @@
 
 import Foundation
 import CocoaAsyncSocket
+import CoreOSC
+
+/// The possible stream framing of TCP data.
+/// - .SLIP - [Serial Line IP ](http://www.rfc-editor.org/rfc/rfc1055.txt)
+/// - .PLH - Packet Length Headers
+public enum OSCTcpStreamFraming: Int, Codable {
+    /// [Serial Line IP ](http://www.rfc-editor.org/rfc/rfc1055.txt) TCP stream framing.
+    case SLIP
+    /// Packet Length Header TCP stream framing.
+    case PLH
+}
 
 /// A helper object for OSC TCP operations.
 internal struct OSCTcp {
+    
+    private static let slipEnd: UInt8 = 0o0300        // indicates end of packet
+    private static let slipEsc: UInt8 = 0o0333        // indicates byte stuffing
+    private static let slipEscEnd: UInt8 = 0o0334     // ESC ESC_END means END data byte
+    private static let slipEscEsc: UInt8 = 0o0335     // ESC ESC_ESC means ESC data byte
 
     private init() {}
 

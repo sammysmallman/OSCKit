@@ -27,6 +27,7 @@
 import Foundation
 import CocoaAsyncSocket
 import NetUtils
+import CoreOSC
 
 /// An object that sends OSCPackets via UDP.
 public class OSCUdpClient: NSObject {

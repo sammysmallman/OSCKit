@@ -1,8 +1,8 @@
 //
-//  OSCDefine.swift
+//  OSCKit.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 22/07/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,14 +24,6 @@
 //  THE SOFTWARE.
 //
 
-import Foundation
-
-internal let slipEnd: UInt8 = 0o0300        // indicates end of packet
-internal let slipEsc: UInt8 = 0o0333        // indicates byte stuffing
-internal let slipEscEnd: UInt8 = 0o0334     // ESC ESC_END means END data byte
-internal let slipEscEsc: UInt8 = 0o0335     // ESC ESC_ESC means ESC data byte
-
-public enum OSCTcpStreamFraming: Int, Codable {
-    case SLIP   // http://www.rfc-editor.org/rfc/rfc1055.txt
-    case PLH    // Packet Length Headers
-}
+// Export all submodules so they all import
+// when importing the top-level module OSCKit
+@_exported import CoreOSC
