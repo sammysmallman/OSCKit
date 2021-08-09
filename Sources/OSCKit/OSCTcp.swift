@@ -40,7 +40,7 @@ public enum OSCTcpStreamFraming: Int, Codable {
 
 /// A helper object for OSC TCP operations.
 internal struct OSCTcp {
-    
+
     private static let slipEnd: UInt8 = 0o0300        // indicates end of packet
     private static let slipEsc: UInt8 = 0o0333        // indicates byte stuffing
     private static let slipEscEnd: UInt8 = 0o0334     // ESC ESC_END means END data byte

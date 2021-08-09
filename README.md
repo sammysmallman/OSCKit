@@ -102,9 +102,13 @@ func client(_ client: OSCTcpClient,
     
 Create an OSCPacket e.g. An OSC message:
 ```swift
-let message = OSCMessage(with: "/osc/kit", arguments: [1,
-                                                       3.142,
-                                                       "hello world!"])
+do {
+    let message = try OSCMessage(with: "/osc/kit", arguments: [1,
+                                                               3.142,
+                                                               "hello world!"])
+} catch {
+    print("Unable to create OSCMessage: \(error.localizedDescription)")
+}
 ```
     
 <h4>Step 5</h4>
@@ -236,9 +240,14 @@ func client(_ client: OSCUdpClient,
     
 Create an OSCPacket e.g. An OSC message:
 ```swift
-let message = OSCMessage(with: "/osc/kit", arguments: [1,
-                                                       3.142,
-                                                       "hello world!"])
+do {
+    let message = try OSCMessage(with: "/osc/kit", arguments: [1,
+                                                               3.142,
+                                                               "hello world!"])
+} catch {
+    print("Unable to create OSCMessage: \(error.localizedDescription)")
+}
+
 ```
     
 <h4>Step 5</h4>
