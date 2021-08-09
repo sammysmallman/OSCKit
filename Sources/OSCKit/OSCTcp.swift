@@ -33,7 +33,7 @@ import CoreOSC
 /// - .PLH - Packet Length Headers
 public enum OSCTcpStreamFraming: Int, Codable {
     /// [Serial Line IP ](http://www.rfc-editor.org/rfc/rfc1055.txt) TCP stream framing.
-    case SLIP
+    case SLIP = 0
     /// Packet Length Header TCP stream framing.
     case PLH
 }

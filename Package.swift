@@ -1,6 +1,4 @@
-// swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
+// swift-tools-version:5.3
 import PackageDescription
 
 let package = Package(
@@ -17,7 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket", from: "7.6.4"),
-        .package(url: "https://github.com/svdo/swift-netutils", from: "4.1.0"),
+        .package(name: "NetUtils" ,url: "https://github.com/svdo/swift-netutils", from: "4.1.0"),
         .package(url: "https://github.com/sammysmallman/CoreOSC", .branch("main"))
     ],
     targets: [

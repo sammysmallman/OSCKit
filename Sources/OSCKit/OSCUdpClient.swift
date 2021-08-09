@@ -143,24 +143,7 @@ public class OSCUdpClient: NSObject {
     /// is either a directed or limited broadcast address.
     /// If an interface has not been set for the client the default OS interface will be used.
     public func send(_ packet: OSCPacket) throws {
-        if let interface = interface {
-            let enableBroadcast = Interface.allInterfaces().contains(where: {
-                $0.name == interface && ($0.broadcastAddress == host || "255.255.255.255" == host )
-            })
-            try socket.enableBroadcast(enableBroadcast)
-            // Port 0 means that the OS should choose a random ephemeral port for this socket.
-            try socket.bind(toPort: 0, interface: interface)
-        }
-        sendingMessages[tag] = SentMessage(host: socket.localHost(),
-                                           port: socket.localPort(),
-                                           packet: packet)
-        socket.send(packet.data(),
-                    toHost: host,
-                    port: port,
-                    withTimeout: timeout,
-                    tag: tag)
-        socket.closeAfterSending()
-        tag = tag == Int.max ? 0 : tag + 1
+        try send(packet: packet, with: packet.data())
     }
 
     /// Send the raw data of an `OSCPacket` from the client.
@@ -173,6 +156,23 @@ public class OSCUdpClient: NSObject {
     /// If an interface has not been set for the client the default OS interface will be used.
     public func send(_ data: Data) throws {
         let packet = try OSCParser.packet(from: data)
+        try send(packet: packet, with: data)
+    }
+   
+    /// Send an OSCPacket and its associated data from the client.
+    /// - Parameter packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
+    /// - Parameter data: Data from the given packet.
+    /// - Throws: An error if a packet can't be parsed from the data, the broadcast flag could not
+    ///           be set or the interface could not be bound to.
+    ///
+    /// `data` is an input property as its a computed property of an `OSCPacket`.
+    /// Therefore by passing it into this function allows for us to not calculate it
+    /// once more when send(_:Data) is called.
+    ///
+    /// The broadcast flag will automatically be set if an interface has been set for the client and the host
+    /// is either a directed or limited broadcast address.
+    /// If an interface has not been set for the client the default OS interface will be used.
+    private func send(packet: OSCPacket, with data: Data) throws {
         if let interface = interface {
             let enableBroadcast = Interface.allInterfaces().contains(where: {
                 $0.name == interface && ($0.broadcastAddress == host || "255.255.255.255" == host )
