@@ -313,6 +313,10 @@ do {
 ```
 </details>
 
+## CoreOSC
+
+OSCKit is supported by the infrastructural code provided by [CoreOSC](https://github.com/sammysmallman/CoreOSC). For more detailed information pertaining to the OSC objects that OSCKit uses, such as Address Patterns, Messages and Bundles, please direct all queries to [CoreOSC](https://github.com/sammysmallman/CoreOSC).
+
 ## Authors
 
 **Sammy Smallman** - *Initial Work* - [SammySmallman](https://github.com/sammysmallman)
