@@ -80,9 +80,9 @@ public class OSCUdpClient: NSObject {
     ///
     /// This allows for a reference to a sent packet when the
     /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
-    private var sendingMessages: [Int: SentMessage] = [:]
+    private var sendingPackets: [Int: OSCSentPacket] = [:]
 
-    /// A sequential tag that is increased and associated with each message sent.
+    /// A sequential tag that is increased and associated with each packet sent.
     ///
     /// The tag will wrap around to 0 if the maximum amount has been reached.
     /// This allows for a reference to a sent packet when the
@@ -181,9 +181,9 @@ public class OSCUdpClient: NSObject {
             // Port 0 means that the OS should choose a random ephemeral port for this socket.
             try socket.bind(toPort: 0, interface: interface)
         }
-        sendingMessages[tag] = SentMessage(host: socket.localHost(),
-                                           port: socket.localPort(),
-                                           packet: packet)
+        sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
+                                            port: socket.localPort(),
+                                            packet: packet)
         socket.send(data,
                     toHost: host,
                     port: port,
@@ -198,18 +198,21 @@ public class OSCUdpClient: NSObject {
 // MARK: - GCDAsyncUDPSocketDelegate
 extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
 
-    public func udpSocket(_ sock: GCDAsyncUdpSocket, didSendDataWithTag tag: Int) {
-        guard let sentMessage = sendingMessages[tag] else { return }
-        sendingMessages[tag] = nil
+    public func udpSocket(_ sock: GCDAsyncUdpSocket,
+                          didSendDataWithTag tag: Int) {
+        guard let sentMessage = sendingPackets[tag] else { return }
+        sendingPackets[tag] = nil
         delegate?.client(self,
                          didSendPacket: sentMessage.packet,
                          fromHost: sentMessage.host,
                          port: sentMessage.port)
     }
 
-    public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
-        guard let sentMessage = sendingMessages[tag] else { return }
-        sendingMessages[tag] = nil
+    public func udpSocket(_ sock: GCDAsyncUdpSocket,
+                          didNotSendDataWithTag tag: Int,
+                          dueToError error: Error?) {
+        guard let sentMessage = sendingPackets[tag] else { return }
+        sendingPackets[tag] = nil
         delegate?.client(self,
                          didNotSendPacket: sentMessage.packet,
                          fromHost: sentMessage.host,
@@ -217,28 +220,12 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                          error: error)
     }
 
-    public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket, withError error: Error?) {
+    public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket,
+                                  withError error: Error?) {
         guard let error = error else { return }
-        sendingMessages.removeAll()
+        sendingPackets.removeAll()
         delegate?.client(self,
                          socketDidCloseWithError: error)
     }
 
-}
-
-extension OSCUdpClient {
-
-    /// An object that represents a packet sent to a server.
-    private struct SentMessage {
-
-        /// The host of the client the message was sent to.
-        let host: String?
-
-        /// The port of the client the message was sent to.
-        let port: UInt16?
-
-        /// The message that was sent to the client.
-        let packet: OSCPacket
-
-    }
 }

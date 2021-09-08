@@ -298,7 +298,8 @@ public class OSCTcpServer: NSObject {
 // MARK: - GCDAsyncSocketDelegate
 extension OSCTcpServer: GCDAsyncSocketDelegate {
 
-    public func socket(_ sock: GCDAsyncSocket, didAcceptNewSocket newSocket: GCDAsyncSocket) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didAcceptNewSocket newSocket: GCDAsyncSocket) {
         if !isListening {
             isListening = true
         }
@@ -311,7 +312,9 @@ extension OSCTcpServer: GCDAsyncSocketDelegate {
                          port: newSocket.connectedPort)
     }
 
-    public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didRead data: Data,
+                       withTag tag: Int) {
         if !isListening {
             isListening = true
         }
@@ -352,7 +355,8 @@ extension OSCTcpServer: GCDAsyncSocketDelegate {
         }
     }
 
-    public func socket(_ sock: GCDAsyncSocket, didWriteDataWithTag tag: Int) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didWriteDataWithTag tag: Int) {
         if !isListening {
             isListening = true
         }
@@ -365,7 +369,8 @@ extension OSCTcpServer: GCDAsyncSocketDelegate {
 
     }
 
-    public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError error: Error?) {
+    public func socketDidDisconnect(_ sock: GCDAsyncSocket,
+                                    withError error: Error?) {
         if sock != socket {
             if !isListening {
                 isListening = true
