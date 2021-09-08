@@ -200,23 +200,23 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
 
     public func udpSocket(_ sock: GCDAsyncUdpSocket,
                           didSendDataWithTag tag: Int) {
-        guard let sentMessage = sendingPackets[tag] else { return }
+        guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
         delegate?.client(self,
-                         didSendPacket: sentMessage.packet,
-                         fromHost: sentMessage.host,
-                         port: sentMessage.port)
+                         didSendPacket: sentPacket.packet,
+                         fromHost: sentPacket.host,
+                         port: sentPacket.port)
     }
 
     public func udpSocket(_ sock: GCDAsyncUdpSocket,
                           didNotSendDataWithTag tag: Int,
                           dueToError error: Error?) {
-        guard let sentMessage = sendingPackets[tag] else { return }
+        guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
         delegate?.client(self,
-                         didNotSendPacket: sentMessage.packet,
-                         fromHost: sentMessage.host,
-                         port: sentMessage.port,
+                         didNotSendPacket: sentPacket.packet,
+                         fromHost: sentPacket.host,
+                         port: sentPacket.port,
                          error: error)
     }
 
@@ -224,8 +224,7 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                                   withError error: Error?) {
         guard let error = error else { return }
         sendingPackets.removeAll()
-        delegate?.client(self,
-                         socketDidCloseWithError: error)
+        delegate?.client(self, socketDidCloseWithError: error)
     }
 
 }
