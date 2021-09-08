@@ -168,8 +168,8 @@ public class OSCUdpPeer: NSObject {
 
     /// Start the peer running
     ///
-    /// The speer will bind its socket to a port. If an interface has been set,
-    /// it will also bind to that so messages are only received through that interface;
+    /// The peer will bind its socket to a port. If an interface has been set,
+    /// it will also bind to that so packets are only received through that interface;
     /// otherwise packets are received on all up and running interfaces.
     /// - Throws: An error relating to the binding of a socket.
     public func startRunning() throws {
@@ -233,8 +233,8 @@ public class OSCUdpPeer: NSObject {
     /// once more when send(_:Data) is called.
     private func send(packet: OSCPacket, with data: Data) throws {
         sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
-                                             port: socket.localPort(),
-                                             packet: packet)
+                                            port: socket.localPort(),
+                                            packet: packet)
         socket.send(data,
                     toHost: host,
                     port: port,
