@@ -76,7 +76,7 @@ public protocol OSCUdpPeerDelegate: AnyObject {
     /// Tells the delegate that the peers socket closed.
     /// - Parameters:
     ///   - peer: The peer that sent the message.
-    ///   - error: An optional error if the servers socket closed with one.
+    ///   - error: An optional error if the peers socket closed with one.
     func peer(_ peer: OSCUdpPeer,
               socketDidCloseWithError error: Error?)
 

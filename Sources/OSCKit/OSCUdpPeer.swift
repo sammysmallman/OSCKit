@@ -48,7 +48,8 @@ public class OSCUdpPeer: NSObject {
         OSCKit.OSCUdpPeer(\
         interface: \(String(describing: interface)), \
         host: \(host), \
-        port: \(port)))
+        port: \(port), \
+        hostPort: \(hostPort))
         """
     }
 
@@ -77,7 +78,7 @@ public class OSCUdpPeer: NSObject {
     /// The host for the peer.
     public var localHost: String? { socket.localHost() }
 
-    /// The port for both the host the peer should send packets to and for the peer itself to receive packets on.
+    /// The port the peer should listen for packets on.
     ///
     /// Setting this property will stop the peer running.
     public var port: UInt16 {
@@ -85,6 +86,9 @@ public class OSCUdpPeer: NSObject {
             stopRunning()
         }
     }
+    
+    /// The port of the host the peer should send packets to.
+    public var hostPort: UInt16
 
     /// A boolean value that indicates whether the peers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
@@ -132,6 +136,7 @@ public class OSCUdpPeer: NSObject {
         }
         host = configuration.host
         port = configuration.port
+        hostPort = configuration.hostPort
         self.delegate = delegate
         self.queue = queue
         super.init()
@@ -143,17 +148,20 @@ public class OSCUdpPeer: NSObject {
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address
     ///                or nil if the peer should listen on all interfaces.
     ///   - host: The destination the peer should send UDP packets to.
-    ///   - port: The port for both the host the peer should send packets to and for the peer itself to receive packets on.
+    ///   - port: The port the peer should listen for packets on.
+    ///   - hostPort: The port of the host the peer should send packets to.
     ///   - delegate: The peers delegate.
     ///   - queue: The dispatch queue that the peer executes all delegate callbacks on.
     public convenience init(interface: String? = nil,
                             host: String,
                             port: UInt16,
+                            hostPort: UInt16,
                             delegate: OSCUdpPeerDelegate? = nil,
                             queue: DispatchQueue = .main) {
         let configuration = OSCUdpPeerConfiguration(interface: interface,
                                                     host: host,
-                                                    port: port)
+                                                    port: port,
+                                                    hostPort: hostPort)
         self.init(configuration: configuration,
                   delegate: delegate,
                   queue: queue)
@@ -237,7 +245,7 @@ public class OSCUdpPeer: NSObject {
                                             packet: packet)
         socket.send(data,
                     toHost: host,
-                    port: port,
+                    port: hostPort,
                     withTimeout: timeout,
                     tag: tag)
         tag = tag == Int.max ? 0 : tag + 1
