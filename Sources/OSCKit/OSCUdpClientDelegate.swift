@@ -55,7 +55,7 @@ public protocol OSCUdpClientDelegate: AnyObject {
 
     /// Tells the delegate that the clients socket cloed with an error.
     /// - Parameters:
-    ///   - server: The client that sent the message.
+    ///   - client: The client that sent the message.
     ///   - error: The error the clients socket closed with.
     func client(_ client: OSCUdpClient,
                 socketDidCloseWithError error: Error)

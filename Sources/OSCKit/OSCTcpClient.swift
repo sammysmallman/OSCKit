@@ -251,11 +251,15 @@ public class OSCTcpClient: NSObject {
 // MARK: - GCDAsyncSocketDelegate
 extension OSCTcpClient: GCDAsyncSocketDelegate {
 
-    public func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didConnectToHost host: String,
+                       port: UInt16) {
         delegate?.client(self, didConnectTo: host, port: port)
     }
 
-    public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didRead data: Data,
+                       withTag tag: Int) {
         do {
             switch streamFraming {
             case .SLIP:
@@ -281,13 +285,15 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
         }
     }
 
-    public func socket(_ sock: GCDAsyncSocket, didWriteDataWithTag tag: Int) {
+    public func socket(_ sock: GCDAsyncSocket,
+                       didWriteDataWithTag tag: Int) {
         guard let packet = sendingMessages[tag] else { return }
         sendingMessages[tag] = nil
         delegate?.client(self, didSendPacket: packet)
     }
 
-    public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError error: Error?) {
+    public func socketDidDisconnect(_ sock: GCDAsyncSocket,
+                                    withError error: Error?) {
         delegate?.client(self, didDisconnectWith: error)
         state = OSCTcp.SocketState()
         sendingMessages.removeAll()
