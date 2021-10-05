@@ -1,8 +1,8 @@
 //
-//  Interface Extension.swift
+//  OSCSentPacket.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 08/09/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,27 +25,17 @@
 //
 
 import Foundation
-import SystemConfiguration
-import NetUtils
 
-extension Interface {
-    #if os(OSX)
-    open var displayName : String {
-        get {
-            guard let interfaces = SCNetworkInterfaceCopyAll() as? [SCNetworkInterface] else {
-                return ""
-            }
-            for interface in interfaces where SCNetworkInterfaceGetBSDName(interface) as String? == self.name {
-                return SCNetworkInterfaceGetLocalizedDisplayName(interface)! as String
-            }
-            return ""
-        }
-    }
-    
-    open var displayText : String {
-        get {
-            return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
-        }
-    }
-    #endif
+/// An object that represents a packet sent to a server.
+internal struct OSCSentPacket {
+
+    /// The host of the client the message was sent to.
+    let host: String?
+
+    /// The port of the client the message was sent to.
+    let port: UInt16?
+
+    /// The message that was sent to the client.
+    let packet: OSCPacket
+
 }

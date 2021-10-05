@@ -1,8 +1,8 @@
 //
-//  OSCClientDelegate.swift
+//  Numeric.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 13/07/2021.
 //  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,9 +26,11 @@
 
 import Foundation
 
-public protocol OSCClientDelegate: class {
-    
-    func clientDidConnect(client: OSCClient)
-    func clientDidDisconnect(client: OSCClient)
-    
+extension Numeric {
+
+    internal var data: Data {
+        var source = self
+        return Data(bytes: &source, count: MemoryLayout<Self>.size)
+    }
+
 }
