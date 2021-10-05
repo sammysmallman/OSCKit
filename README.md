@@ -33,7 +33,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.0.0"))
+    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.0.1"))
 ]
 ```
 
