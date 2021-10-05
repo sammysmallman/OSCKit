@@ -173,22 +173,21 @@ public class OSCUdpServer: NSObject {
     /// `joinedmulticastGroups` should be used in all instances to query
     /// which multicast groups the server is currently listening to.
     public func startListening() throws {
-        if !isListening {
-            try socket.bind(toPort: port, interface: interface)
-            try socket.beginReceiving()
-            isListening = true
-            for multicastGroup in multicastGroups {
-                do {
-                    try join(multicastGroup: multicastGroup)
-                    joinedMulticastGroups.insert(multicastGroup)
-                } catch {
-                    // The error here is purposefully not thrown.
-                    // The purpose of this function is to set the server listening
-                    // and the automation of joining multicast groups is a bonus.
-                    // joinedMulticastGroups can be used after startListening() has
-                    // been called to work out which groups have been joined or not.
-                    joinedMulticastGroups.remove(multicastGroup)
-                }
+        guard isListening == false else { return }
+        try socket.bind(toPort: port, interface: interface)
+        try socket.beginReceiving()
+        isListening = true
+        for multicastGroup in multicastGroups {
+            do {
+                try join(multicastGroup: multicastGroup)
+                joinedMulticastGroups.insert(multicastGroup)
+            } catch {
+                // The error here is purposefully not thrown.
+                // The purpose of this function is to set the server listening
+                // and the automation of joining multicast groups is a bonus.
+                // joinedMulticastGroups can be used after startListening() has
+                // been called to work out which groups have been joined or not.
+                joinedMulticastGroups.remove(multicastGroup)
             }
         }
     }
@@ -230,8 +229,7 @@ public class OSCUdpServer: NSObject {
     /// A multiverse group should be an IP address in the range 224.0.0.0 through 239.255.255.255.
     public func join(multicastGroup: String) throws {
         if isListening {
-            try socket.joinMulticastGroup(multicastGroup,
-                                          onInterface: interface)
+            try socket.joinMulticastGroup(multicastGroup, onInterface: interface)
             joinedMulticastGroups.insert(multicastGroup)
         } else {
             throw OSCUdpServerError.serverSocketIsNotBound
@@ -247,8 +245,7 @@ public class OSCUdpServer: NSObject {
     public func leave(multicastGroup: String) throws {
         if isListening {
             if joinedMulticastGroups.contains(multicastGroup) {
-                try socket.leaveMulticastGroup(multicastGroup,
-                                               onInterface: interface)
+                try socket.leaveMulticastGroup(multicastGroup, onInterface: interface)
                 joinedMulticastGroups.remove(multicastGroup)
             } else {
                 throw OSCUdpServerError.multicastGroupNotJoined
@@ -290,8 +287,7 @@ extension OSCUdpServer: GCDAsyncUdpSocketDelegate {
         if joinedMulticastGroups.isEmpty == false {
             joinedMulticastGroups.removeAll()
         }
-        delegate?.server(self,
-                         socketDidCloseWithError: error)
+        delegate?.server(self, socketDidCloseWithError: error)
     }
 
 }
