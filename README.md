@@ -178,7 +178,7 @@ func server(_ server: OSCTcpServer,
 func server(_ server: OSCTcpServer,
             didReadData data: Data,
             with error: Error) {
-    print("Server did read data with error: \(error.localizedDescription)"
+    print("Server did read data with error: \(error.localizedDescription)")
 }
 ```    
   
