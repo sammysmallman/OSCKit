@@ -29,10 +29,10 @@ import CocoaAsyncSocket
 import CoreOSC
 
 /// The possible stream framing of TCP data.
-/// - .SLIP - [Serial Line IP ](http://www.rfc-editor.org/rfc/rfc1055.txt)
+/// - .SLIP - [Serial Line IP](http://www.rfc-editor.org/rfc/rfc1055.txt)
 /// - .PLH - Packet Length Headers
 public enum OSCTcpStreamFraming: Int, Codable {
-    /// [Serial Line IP ](http://www.rfc-editor.org/rfc/rfc1055.txt) TCP stream framing.
+    /// [Serial Line IP](http://www.rfc-editor.org/rfc/rfc1055.txt) TCP stream framing.
     case SLIP = 0
     /// Packet Length Header TCP stream framing.
     case PLH
