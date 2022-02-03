@@ -1,8 +1,8 @@
 //
-//  OSCArguments.swift
+//  OSCKit.swift
 //  OSCKit
 //
-//  Created by Sam Smallman on 29/10/2017.
+//  Created by Sam Smallman on 03/02/2022.
 //  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
 // This file is part of OSCKit
@@ -23,15 +23,16 @@
 
 import Foundation
 
-public enum OSCArgument {
-    case oscString
-    case oscBlob
-    case oscInt
-    case oscBool
-    case oscFloat
-    case oscTrue
-    case oscFalse
-    case oscNil
-    case oscImpulse
-    case oscTimetag
+public enum OSCKit {
+    
+    /// This package's semantic version number, mirrored also in git history as a `git tag`.
+    static let version: String = "2.2.0"
+    
+    /// The license agreement this repository is licensed under.
+    static let license: String = {
+        let url = Bundle.module.url(forResource: "LICENSE", withExtension: "md")
+        let data = try! Data(contentsOf: url!)
+        return String(decoding: data, as: UTF8.self)
+    }()
+
 }

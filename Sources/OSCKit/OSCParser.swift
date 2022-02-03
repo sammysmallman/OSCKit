@@ -3,25 +3,22 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 29/10/2017.
-//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+// This file is part of OSCKit
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+// OSCKit is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+// OSCKit is distributed in the hope that it will be useful
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -30,13 +27,18 @@ public class OSCParser {
     
     private var plhDataBuffer: Data?
     
-    public func process(OSCDate data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
+    public func process(
+        OSCDate data: Data,
+        for destination: OSCPacketDestination,
+        with replySocket: OSCSocket,
+        streamFraming: OSCTCPStreamFraming = .SLIP
+    ) throws {
         guard let string = String(data: data.prefix(upTo: 1), encoding: .utf8) else {
             throw OSCParserError.unrecognisedData
         }
         if string == "/" { // OSC Messages begin with /
             do {
-                try process(OSCMessageData: data, for: destination, with: replySocket)
+                try process(OSCMessageData: data, for: destination, with: replySocket, streamFraming: streamFraming)
             } catch {
                 throw error
             }
@@ -51,18 +53,51 @@ public class OSCParser {
         }
     }
     
-    private func process(OSCMessageData data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
+    private func process(
+        OSCMessageData data: Data,
+        for destination: OSCPacketDestination,
+        with replySocket: OSCSocket,
+        streamFraming: OSCTCPStreamFraming = .SLIP
+    ) throws {
         var startIndex = 0
         do {
             let message = try parseOSCMessage(with: data, startIndex: &startIndex)
+            print(message.addressPattern)
             message.replySocket = replySocket
-            destination.take(message: message)
+            switch message.addressPattern {
+            case version:
+                send(message: OSCMessage(with: version + OSCKit.version, arguments: [OSCKit.version]), to: replySocket)
+            case license:
+                send(message: OSCMessage(with: license, arguments: [OSCKit.license]), to: replySocket)
+            default: destination.take(message: message)
+            }
         } catch {
             throw error
         }
     }
     
-    private func process(OSCBundleData data: Data, for destination: OSCPacketDestination, with replySocket: OSCSocket) throws {
+    private func send(
+        message: OSCMessage,
+        to socket: OSCSocket,
+        streamFraming: OSCTCPStreamFraming = .SLIP
+    ) {
+        if socket.isTCPSocket {
+            socket.sendTCP(packet: message, withStreamFraming: streamFraming)
+        }
+        if socket.isUDPSocket {
+            let client = OSCClient()
+            client.useTCP = false
+            client.host = socket.host
+            client.port = socket.port
+            client.send(packet: message)
+        }
+    }
+    
+    private func process(
+        OSCBundleData data: Data,
+        for destination: OSCPacketDestination,
+        with replySocket: OSCSocket
+    ) throws {
         do {
             let  bundle = try parseOSCBundle(with: data)
             bundle.replySocket = replySocket
@@ -72,7 +107,13 @@ public class OSCParser {
         }
     }
     
-    public func translate(OSCData tcpData: Data, streamFraming: OSCTCPStreamFraming, to data: NSMutableData, with state: NSMutableDictionary, andDestination destination: OSCPacketDestination) throws {
+    public func translate(
+        OSCData tcpData: Data,
+        streamFraming: OSCTCPStreamFraming,
+        to data: NSMutableData,
+        with state: NSMutableDictionary,
+        andDestination destination: OSCPacketDestination
+    ) throws {
         switch streamFraming {
         case .SLIP:
             // There are two versions of OSC. OSC 1.1 frames messages using the SLIP protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
@@ -113,7 +154,7 @@ public class OSCParser {
                          */
                         guard !data.isEmpty else { break }
                         do {
-                            try process(OSCDate: data as Data, for: destination, with: socket)
+                            try process(OSCDate: data as Data, for: destination, with: socket, streamFraming: streamFraming)
                             data.setData(Data())
                         } catch {
                             throw error
@@ -182,7 +223,10 @@ public class OSCParser {
         }
     }
     
-    private func parseOSCMessage(with data: Data, startIndex firstIndex: inout Int) throws -> OSCMessage {
+    private func parseOSCMessage(
+        with data: Data,
+        startIndex firstIndex: inout Int
+    ) throws -> OSCMessage {
         guard let addressPattern = oscString(with: data, startIndex: &firstIndex) else {
             throw OSCParserError.cantParseAddressPattern
         }
@@ -266,7 +310,11 @@ public class OSCParser {
         }
     }
     
-    func parseOSCBundleElements(with index: Int, data: Data, andSize size: Int32) throws -> [OSCPacket] {
+    func parseOSCBundleElements(
+        with index: Int,
+        data: Data,
+        andSize size: Int32
+    ) throws -> [OSCPacket] {
         var elements: [OSCPacket] = []
         var startIndex = 0
         var buffer: Int32 = 0

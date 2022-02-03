@@ -13,6 +13,9 @@ Added features include:
  * OSC 1.0 & 1.1 Stream Framing.
  
  A simple demo project can be found [here](https://github.com/sammysmallman/OSCKitDemo).
+ 
+ ## License
+OSCKit is licensed under the GNU Affero General Public License, version 3. If you require a commercial license for an application that you would not like to trigger AGPLv3 obligations (e.g. open sourcing your application), please get in touch.
 
 ## Installation
 
@@ -27,7 +30,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", from: "2.1.0")
+    .package(url: "https://github.com/SammySmallman/OSCKit", from: "2.2.0")
 ]
 ```
 
