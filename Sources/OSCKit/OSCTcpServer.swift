@@ -134,7 +134,7 @@ public class OSCTcpServer: NSObject {
            configInterface.isEmpty == false {
             self.interface = configInterface
         } else {
-            interface = nil
+            self.interface = nil
         }
         port = configuration.port
         self.delegate = delegate

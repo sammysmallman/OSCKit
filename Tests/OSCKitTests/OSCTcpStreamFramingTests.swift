@@ -29,11 +29,6 @@ import XCTest
 
 final class OSCTcpStreamFramingTests: XCTestCase {
     
-    static var allTests = [
-        ("testSLIP", testSLIP),
-        ("testPLH", testPLH)
-    ]
-    
     func testSLIP() {
         let slip: Int = 0
         let streamFraming = OSCTcpStreamFraming(rawValue: slip)

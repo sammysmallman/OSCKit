@@ -206,7 +206,7 @@ public class OSCTcpClient: NSObject {
     /// - Parameter packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
     /// - Throws: An error if the client is not already connected and connecting causes an error.
     ///
-    /// If  the client is not already connected to a server `connect()` will be called first.
+    /// If the client is not already connected to a server `connect()` will be called first.
     public func send(_ packet: OSCPacket) throws {
         try connect()
         guard isConnected else { return }
@@ -228,7 +228,7 @@ public class OSCTcpClient: NSObject {
     /// - Throws: An error if a packet can't be parsed from the data or if the client is not
     ///           already connected and connecting causes an error.
     ///
-    /// If  the client is not already connected to a server `connect()` will be called first.
+    /// If the client is not already connected to a server `connect()` will be called first.
     public func send(_ data: Data) throws {
         try connect()
         let packet = try OSCParser.packet(from: data)
