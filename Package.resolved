@@ -12,11 +12,11 @@
       },
       {
         "package": "CoreOSC",
-        "repositoryURL": "https://github.com/sammysmallman/CoreOSC",
+        "repositoryURL": "https://github.com/sammysmallman/CoreOSC.git",
         "state": {
           "branch": null,
-          "revision": "9a8524b3822002e3536528b77008e01a59c2b224",
-          "version": "1.0.0"
+          "revision": "c8f1080e31dae7bcfbd1660018f2ed8b11228e1a",
+          "version": "1.1.0"
         }
       },
       {

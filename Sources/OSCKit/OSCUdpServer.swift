@@ -3,25 +3,22 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 07/07/2021.
-//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+//  This file is part of OSCKit
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+//  OSCKit is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+//  OSCKit is distributed in the hope that it will be useful
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -68,23 +65,11 @@ public class OSCUdpServer: NSObject {
     /// A `Set` of multicast groups that should be joined automatically when the server starts listening.
     public var multicastGroups: Set<String>
 
-    /// The private real `joinedMulticastGroups` property to force thread safety.
-    private var _joinedMulticastGroups: Set<String> = []
     /// A `Set` of multicast groups that have been joined by the server.
-    public var joinedMulticastGroups: Set<String> {
-        queue.sync {
-            _joinedMulticastGroups
-        }
-    }
+    public var joinedMulticastGroups: Set<String> = []
 
-    /// The private real `isListening` property to force thread safety.
-    private var _isListening: Bool = false
     /// A boolean value that indicates whether the server is listening for OSC packets.
-    public var isListening: Bool {
-        queue.sync {
-            _isListening
-        }
-    }
+    public var isListening: Bool = false
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
@@ -108,36 +93,17 @@ public class OSCUdpServer: NSObject {
         }
     }
 
-    /// The private real `reusePort` property to force thread safety.
-    private var _reusePort: Bool = false
     /// A boolean value that indicates whether the servers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
-    public var reusePort: Bool {
-        queue.sync {
-            _reusePort
-        }
-    }
+    public var reusePort: Bool = false
 
     /// The dispatch queue that the server executes all delegate callbacks on.
     private let queue: DispatchQueue
 
-    /// The private real `delegate` property to force thread safety.
-    public weak var _delegate: OSCUdpServerDelegate?
     /// The servers delegate.
     ///
     /// The delegate must conform to the `OSCUdpServerDelegate` protocol.
-    public weak var delegate: OSCUdpServerDelegate? {
-        get {
-            queue.sync {
-                _delegate
-            }
-        }
-        set {
-            queue.sync {
-                _delegate = newValue
-            }
-        }
-    }
+    public weak var delegate: OSCUdpServerDelegate?
 
     /// An OSC UDP Server.
     /// - Parameters:
@@ -156,7 +122,7 @@ public class OSCUdpServer: NSObject {
         }
         port = configuration.port
         multicastGroups = configuration.multicastGroups
-        self._delegate = delegate
+        self.delegate = delegate
         self.queue = queue
         super.init()
         socket.setDelegate(self, delegateQueue: queue)
@@ -206,24 +172,18 @@ public class OSCUdpServer: NSObject {
         guard isListening == false else { return }
         try socket.bind(toPort: port, interface: interface)
         try socket.beginReceiving()
-        queue.async {
-            self._isListening = true
-        }
+        isListening = true
         for multicastGroup in multicastGroups {
             do {
                 try join(multicastGroup: multicastGroup)
-                queue.async {
-                    self._joinedMulticastGroups.insert(multicastGroup)
-                }
+                joinedMulticastGroups.insert(multicastGroup)
             } catch {
                 // The error here is purposefully not thrown.
                 // The purpose of this function is to set the server listening
                 // and the automation of joining multicast groups is a bonus.
                 // joinedMulticastGroups can be used after startListening() has
                 // been called to work out which groups have been joined or not.
-                queue.async {
-                    self._joinedMulticastGroups.remove(multicastGroup)
-                }
+                joinedMulticastGroups.remove(multicastGroup)
             }
         }
     }
@@ -235,9 +195,7 @@ public class OSCUdpServer: NSObject {
         guard isListening else { return }
         joinedMulticastGroups.forEach { try? leave(multicastGroup: $0) }
         socket.close()
-        queue.async {
-            self._joinedMulticastGroups.removeAll()
-        }
+        joinedMulticastGroups.removeAll()
     }
 
     // MARK: Reuse Port
@@ -254,9 +212,7 @@ public class OSCUdpServer: NSObject {
     public func enableReusePort(_ flag: Bool) throws {
         stopListening()
         try socket.enableBroadcast(flag)
-        queue.async {
-            self._reusePort = flag
-        }
+        reusePort = flag
     }
 
     // MARK: Multicasting
@@ -270,9 +226,7 @@ public class OSCUdpServer: NSObject {
     public func join(multicastGroup: String) throws {
         if isListening {
             try socket.joinMulticastGroup(multicastGroup, onInterface: interface)
-            queue.async {
-                self._joinedMulticastGroups.insert(multicastGroup)
-            }
+            joinedMulticastGroups.insert(multicastGroup)
         } else {
             throw OSCUdpServerError.serverSocketIsNotBound
         }
@@ -288,9 +242,7 @@ public class OSCUdpServer: NSObject {
         if isListening {
             if joinedMulticastGroups.contains(multicastGroup) {
                 try socket.leaveMulticastGroup(multicastGroup, onInterface: interface)
-                queue.async {
-                    self._joinedMulticastGroups.remove(multicastGroup)
-                }
+                joinedMulticastGroups.remove(multicastGroup)
             } else {
                 throw OSCUdpServerError.multicastGroupNotJoined
             }
@@ -310,28 +262,33 @@ extension OSCUdpServer: GCDAsyncUdpSocketDelegate {
                           withFilterContext filterContext: Any?) {
         guard let host = GCDAsyncUdpSocket.host(fromAddress: address) else { return }
         do {
+            let port = GCDAsyncUdpSocket.port(fromAddress: address)
             let packet = try OSCParser.packet(from: data)
-            _delegate?.server(self,
-                             didReceivePacket: packet,
-                             fromHost: host,
-                             port: GCDAsyncUdpSocket.port(fromAddress: address))
+            if let message = OSCKit.message(for: packet) {
+                try? OSCUdpClient(host: host, port: port).send(message)
+            } else {
+                delegate?.server(self,
+                                  didReceivePacket: packet,
+                                  fromHost: host,
+                                  port: port)
+            }
         } catch {
-            _delegate?.server(self,
+            delegate?.server(self,
                              didReadData: data,
                              with: error)
         }
-        if !_isListening {
-            _isListening = true
+        if !isListening {
+            isListening = true
         }
     }
 
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket,
                                   withError error: Error?) {
-        _isListening = false
-        if _joinedMulticastGroups.isEmpty == false {
-            _joinedMulticastGroups.removeAll()
+        isListening = false
+        if joinedMulticastGroups.isEmpty == false {
+            joinedMulticastGroups.removeAll()
         }
-        _delegate?.server(self, socketDidCloseWithError: error)
+        delegate?.server(self, socketDidCloseWithError: error)
     }
 
 }
