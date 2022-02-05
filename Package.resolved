@@ -6,8 +6,17 @@
         "repositoryURL": "https://github.com/robbiehanson/CocoaAsyncSocket",
         "state": {
           "branch": null,
-          "revision": "0e00c967a010fc43ce528bd633d032f17158d393",
-          "version": "7.6.4"
+          "revision": "dbdc00669c1ced63b27c3c5f052ee4d28f10150c",
+          "version": "7.6.5"
+        }
+      },
+      {
+        "package": "CoreOSC",
+        "repositoryURL": "https://github.com/sammysmallman/CoreOSC.git",
+        "state": {
+          "branch": null,
+          "revision": "c8f1080e31dae7bcfbd1660018f2ed8b11228e1a",
+          "version": "1.1.0"
         }
       },
       {
@@ -15,8 +24,8 @@
         "repositoryURL": "https://github.com/svdo/swift-netutils",
         "state": {
           "branch": null,
-          "revision": "d1251a380f41088547e4cfc8dc718a90c861a42b",
-          "version": "4.1.0"
+          "revision": "776909ce0b37bd9ea1fa0f2156e4e5ad07a592b8",
+          "version": "4.2.0"
         }
       }
     ]
