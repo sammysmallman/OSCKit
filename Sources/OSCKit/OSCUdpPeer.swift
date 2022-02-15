@@ -48,8 +48,8 @@ public class OSCUdpPeer: NSObject {
         OSCKit.OSCUdpPeer(\
         interface: \(String(describing: interface)), \
         host: \(host), \
-        port: \(port), \
-        hostPort: \(hostPort))
+        hostPort: \(hostPort), \
+        port: \(port))
         """
     }
 
@@ -74,6 +74,9 @@ public class OSCUdpPeer: NSObject {
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public var host: String
+    
+    /// The port of the host the peer should send packets to.
+    public var hostPort: UInt16
 
     /// The host for the peer.
     public var localHost: String? { socket.localHost() }
@@ -87,9 +90,6 @@ public class OSCUdpPeer: NSObject {
         }
     }
     
-    /// The port of the host the peer should send packets to.
-    public var hostPort: UInt16
-
     /// A boolean value that indicates whether the peers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
     public private(set) var reusePort: Bool = false
@@ -127,16 +127,15 @@ public class OSCUdpPeer: NSObject {
     public init(configuration: OSCUdpPeerConfiguration,
                 delegate: OSCUdpPeerDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        self.socket = GCDAsyncUdpSocket()
+        if configuration.interface?.isEmpty == false {
+            self.interface = configuration.interface
         } else {
-            interface = nil
+            self.interface = nil
         }
-        host = configuration.host
-        port = configuration.port
-        hostPort = configuration.hostPort
+        self.host = configuration.host
+        self.hostPort = configuration.hostPort
+        self.port = configuration.port
         self.delegate = delegate
         self.queue = queue
         super.init()
@@ -154,14 +153,14 @@ public class OSCUdpPeer: NSObject {
     ///   - queue: The dispatch queue that the peer executes all delegate callbacks on.
     public convenience init(interface: String? = nil,
                             host: String,
-                            port: UInt16,
                             hostPort: UInt16,
+                            port: UInt16,
                             delegate: OSCUdpPeerDelegate? = nil,
                             queue: DispatchQueue = .main) {
         let configuration = OSCUdpPeerConfiguration(interface: interface,
                                                     host: host,
-                                                    port: port,
-                                                    hostPort: hostPort)
+                                                    hostPort: hostPort,
+                                                    port: port)
         self.init(configuration: configuration,
                   delegate: delegate,
                   queue: queue)
@@ -174,7 +173,7 @@ public class OSCUdpPeer: NSObject {
 
     // MARK: Running
 
-    /// Start the peer running
+    /// Start the peer running.
     ///
     /// The peer will bind its socket to a port. If an interface has been set,
     /// it will also bind to that so packets are only received through that interface;

@@ -35,8 +35,8 @@ import Foundation
         OSCKit.OSCUdpPeerConfiguration(\
         interface: \(String(describing: interface)), \
         host: \(host), \
-        port: \(port), \
-        hostPort: \(hostPort))
+        hostPort: \(hostPort), \
+        port: \(port))
         """
     }
 
@@ -48,24 +48,24 @@ import Foundation
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public let host: String
-
-    /// The port the peer should listen for packets on.
-    public let port: UInt16
     
     /// The port of the host the peer should send packets to.
     public let hostPort: UInt16
+
+    /// The port the peer should listen for packets on.
+    public let port: UInt16
 
     /// A configuration object that defines the behavior of a UDP peer.
     /// - Parameters:
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
     ///   - host: The destination the peer should send UDP packets to.
-    ///   - port: The port the peer should listen for packets on.
     ///   - hostPort: The port of the host the peer should send packets to.
-    public init(interface: String? = nil, host: String, port: UInt16, hostPort: UInt16) {
+    ///   - port: The port the peer should listen for packets on.
+    public init(interface: String? = nil, host: String, hostPort: UInt16, port: UInt16) {
         self.interface = interface
+        self.hostPort = hostPort
         self.host = host
         self.port = port
-        self.hostPort = hostPort
     }
 
     // MARK: NSSecureCoding
@@ -80,25 +80,25 @@ import Foundation
 
     /// A key that defines the `host` of an `OSCUdpPeer`.
     private static let hostKey = "hostKey"
-
-    /// A key that defines the `port` of an `OSCUdpPeer`.
-    private static let portKey = "portKey"
     
     /// A key that defines the `hostPort` of an `OSCUdpPeer`.
     private static let hostPortKey = "hostPortKey"
 
+    /// A key that defines the `port` of an `OSCUdpPeer`.
+    private static let portKey = "portKey"
+    
     /// A configuration object that defines the behavior of a UDP peer from data in a given unarchiver.
     public required init?(coder: NSCoder) {
         guard let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as String?,
-              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?,
-              let hostPortData = coder.decodeObject(of: NSData.self, forKey: Self.hostPortKey) as Data?
+              let hostPortData = coder.decodeObject(of: NSData.self, forKey: Self.hostPortKey) as Data?,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?
         else {
             return nil
         }
         self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
         self.host = host
-        self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
         self.hostPort = hostPortData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
+        self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
     }
 
     /// Encodes this instance using a given archiver.
@@ -106,8 +106,8 @@ import Foundation
         coder.encode(interface, forKey: Self.interfaceKey)
         coder.encode(host, forKey: Self.hostKey)
         // Port could potentially be encoded as an NSInteger...
-        coder.encode(port.bigEndian.data, forKey: Self.portKey)
         coder.encode(hostPort.bigEndian.data, forKey: Self.hostPortKey)
+        coder.encode(port.bigEndian.data, forKey: Self.portKey)
     }
 
 }
