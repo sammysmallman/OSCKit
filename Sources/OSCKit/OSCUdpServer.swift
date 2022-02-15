@@ -3,25 +3,22 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 07/07/2021.
-//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+//  This file is part of OSCKit
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+//  OSCKit is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+//  OSCKit is distributed in the hope that it will be useful
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -70,16 +67,17 @@ public class OSCUdpServer: NSObject {
     public var multicastGroups: Set<String>
 
     /// A `Set` of multicast groups that have been joined by the server.
-    public private(set) var joinedMulticastGroups: Set<String> = []
+    public var joinedMulticastGroups: Set<String> = []
 
     /// A boolean value that indicates whether the server is listening for OSC packets.
-    public private(set) var isListening: Bool = false
+    public var isListening: Bool = false
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
     ///
     /// Setting this property will stop the server listening.
     /// - Note: The socket will bind to this interface only if `multicastGroups` is empty.
+    /// To receive broadcasted packets (Directed or Limited) into the servers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopListening()
@@ -100,7 +98,7 @@ public class OSCUdpServer: NSObject {
 
     /// A boolean value that indicates whether the servers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
-    public private(set) var reusePort: Bool = false
+    public var reusePort: Bool = false
 
     /// The dispatch queue that the server executes all delegate callbacks on.
     private let queue: DispatchQueue
@@ -118,9 +116,15 @@ public class OSCUdpServer: NSObject {
     public init(configuration: OSCUdpServerConfiguration,
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
+<<<<<<< HEAD
         self.socket = GCDAsyncUdpSocket()
         if configuration.interface?.isEmpty == false {
             self.interface = configuration.interface
+=======
+        socket = GCDAsyncUdpSocket()
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
+>>>>>>> origin/main
         } else {
             self.interface = nil
         }
@@ -154,14 +158,13 @@ public class OSCUdpServer: NSObject {
     }
 
     deinit {
-        joinedMulticastGroups.forEach { try? leave(multicastGroup: $0) }
         stopListening()
         socket.synchronouslySetDelegate(nil)
     }
 
     // MARK: Listening
 
-    /// Start the server listening
+    /// Start the server listening.
     /// - Throws: An error relating to the binding of a socket.
     /// Although this method does automatically attempt to join the multicast groups after successfully
     /// starting to listen, those errors are not handled here.
@@ -271,11 +274,16 @@ extension OSCUdpServer: GCDAsyncUdpSocketDelegate {
                           withFilterContext filterContext: Any?) {
         guard let host = GCDAsyncUdpSocket.host(fromAddress: address) else { return }
         do {
+            let port = GCDAsyncUdpSocket.port(fromAddress: address)
             let packet = try OSCParser.packet(from: data)
-            delegate?.server(self,
-                             didReceivePacket: packet,
-                             fromHost: host,
-                             port: GCDAsyncUdpSocket.port(fromAddress: address))
+            if let message = OSCKit.message(for: packet) {
+                try? OSCUdpClient(host: host, port: port).send(message)
+            } else {
+                delegate?.server(self,
+                                  didReceivePacket: packet,
+                                  fromHost: host,
+                                  port: port)
+            }
         } catch {
             delegate?.server(self,
                              didReadData: data,

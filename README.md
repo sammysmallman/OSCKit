@@ -10,11 +10,17 @@ Use the OSCKit package to create client or server objects. In its simplest form 
 
 OSCKit implements all required argument types as specified in [OSC 1.1](http://opensoundcontrol.org/files/2009-NIME-OSC-1.1.pdf).
 
+An example project can be found in [OSCKitDemo](https://github.com/sammysmallman/OSCKitDemo).
+
+## License
+OSCKit is licensed under the GNU Affero General Public License, version 3. If you require a commercial license for an application that you would not like to trigger AGPLv3 obligations (e.g. open sourcing your application), please get in touch. The probability of obtaining a commerical license for free is high.
+
 ## Features
 
 - UDP and TCP Transport options
 - UDP Servers can join multicast groups
 - UDP Clients can broadcast packets
+- UDP Peer (A shared socket for sending and receiving OSC packets on)
 - TCP Server with client management
 - TCP Stream Framing
 - OSC Bundles
@@ -33,13 +39,13 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.0.0"))
+    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.1.0"))
 ]
 ```
 
 #### App Sandbox Network Settings
-- Enable Incoming Connections *(Required for OSCTcpClient, OSCTcpServer & OSCUdpServer)*
-- Enable Outgoing Connections *(Required for OSCTcpClient, OSCTcpServer & OSCUdpClient)*
+- Enable Incoming Connections *(Required for OSCTcpClient, OSCTcpServer, OSCUdpPeer & OSCUdpServer)*
+- Enable Outgoing Connections *(Required for OSCTcpClient, OSCTcpServer, OSCUdpPeer & OSCUdpClient)*
 
 ## Quick Start
 
@@ -69,15 +75,15 @@ Conform to the clients delegate protocol OSCTcpClientDelegate:
 func client(_ client: OSCTcpClient,
             didConnectTo host: String,
             port: UInt16) {
-    print("client did connect to \(host):\(port)")
+    print("Client did connect to \(host):\(port)")
 }
 
 func client(_ client: OSCTcpClient,
             didDisconnectWith error: Error?) {
     if let error = error {
-       print("client did disconnect with error: \(error.localizedDescription)")
+       print("Client did disconnect with error: \(error.localizedDescription)")
     } else {
-       print("client did disconnect")
+       print("Client did disconnect")
     }
 }
 
@@ -169,16 +175,16 @@ func server(_ server: OSCTcpServer,
 func server(_ server: OSCTcpServer,
             socketDidCloseWithError error: Error?) {
     if let error = error {
-       print("server did stop listening with error: \(error.localizedDescription)")
+       print("Server did stop listening with error: \(error.localizedDescription)")
     } else {
-       print("server did stop listening")
+       print("Server did stop listening")
     }
 }
     
 func server(_ server: OSCTcpServer,
             didReadData data: Data,
             with error: Error) {
-    print("Server did read data with error: \(error.localizedDescription)"
+    print("Server did read data with error: \(error.localizedDescription)")
 }
 ```    
   
@@ -219,7 +225,7 @@ func client(_ client: OSCUdpClient,
             didSendPacket packet: OSCPacket,
             fromHost host: String?,
             port: UInt16?) {
-    print("client sent packet to \(client.host):\(client.port)")
+    print("Client sent packet to \(client.host):\(client.port)")
 }
 
 func client(_ client: OSCUdpClient,
@@ -227,7 +233,7 @@ func client(_ client: OSCUdpClient,
             fromHost host: String?,
             port: UInt16?,
             error: Error?) {
-    print("client did not send packet to \(client.host):\(client.port)")
+    print("Client did not send packet to \(client.host):\(client.port)")
 }
 
 func client(_ client: OSCUdpClient,
@@ -282,22 +288,22 @@ func server(_ server: OSCUdpServer,
             didReceivePacket packet: OSCPacket,
             fromHost host: String,
             port: UInt16) {
-    print("server did receive packet from \(host):\(port)")
+    print("Server did receive packet from \(host):\(port)")
 }
 
 func server(_ server: OSCUdpServer,
             socketDidCloseWithError error: Error?) {
     if let error = error {
-       print("server did stop listening with error: \(error.localizedDescription)")
+       print("Server did stop listening with error: \(error.localizedDescription)")
     } else {
-       print("server did stop listening")
+       print("Server did stop listening")
     }
 }
 
 func server(_ server: OSCUdpServer,
             didReadData data: Data,
             with error: Error) {
-    print("Server did read data with error: \(error.localizedDescription)"
+    print("Server did read data with error: \(error.localizedDescription)")
 }
 ```    
   
@@ -313,6 +319,70 @@ do {
 ```
 </details>
 
+<details closed>
+  <summary>UDP Peer</summary>
+    <h4>Step 1</h4>
+    
+Import OSCKit into your project
+```swift
+import OSCKit
+```
+    
+<h4>Step 2</h4>
+    
+Create a peer
+```swift
+let peer = OSCUdpPeer(host: "10.101.130.101",
+                      port: 24601,
+                      hostPort: 3001)
+```
+    
+<h4>Step 3</h4>
+    
+Conform to the peers delegate protocol OSCUdpPeerDelegate:
+```swift
+    func peer(_ peer: OSCUdpPeer, didReceivePacket packet: OSCPacket, fromHost host: String, port: UInt16) {
+        print("Peer did receive packet from \(host):\(port)")
+    }
+
+    func peer(_ peer: OSCUdpPeer, didReadData data: Data, with error: Error) {
+        print("Peer did read data with error: \(error.localizedDescription)")
+    }
+
+    func peer(_ peer: OSCUdpPeer, didSendPacket packet: OSCPacket, fromHost host: String?, port: UInt16?) {
+        print("Peer sent packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
+    }
+
+    func peer(_ peer: OSCUdpPeer, didNotSendPacket packet: OSCPacket, fromHost host: String?, port: UInt16?, error: Error?) {
+        print("Peer did not send packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
+    }
+
+    func peer(_ peer: OSCUdpPeer, socketDidCloseWithError error: Error?) {
+        print("Peer Error: \(error.localizedDescription)")
+    }
+```
+  
+<h4>Step 4</h4>
+    
+Create an OSCPacket e.g. An OSC message:
+```swift
+do {
+    let message = try OSCMessage(with: "/osc/kit", arguments: [1,
+                                                               3.142,
+                                                               "hello world!"])
+} catch {
+    print("Unable to create OSCMessage: \(error.localizedDescription)")
+}
+```
+    
+<h4>Step 5</h4>
+    
+Send the packet
+```swift
+peer.send(message)
+```
+</details>
+
 ## CoreOSC
 
 OSCKit is supported by the infrastructural code provided by [CoreOSC](https://github.com/sammysmallman/CoreOSC). For more detailed information pertaining to the OSC objects that OSCKit uses, such as Address Patterns, Messages and Bundles, please direct all queries to [CoreOSC](https://github.com/sammysmallman/CoreOSC).
@@ -321,7 +391,7 @@ OSCKit is supported by the infrastructural code provided by [CoreOSC](https://gi
 
 **Sammy Smallman** - *Initial Work* - [SammySmallman](https://github.com/sammysmallman)
 
-See also the list of [contributors](https://github.com/SammyTheHand/OSCKit/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/sammysmallman/OSCKit/graphs/contributors) who participated in this project.
 
 ## Acknowledgments
 

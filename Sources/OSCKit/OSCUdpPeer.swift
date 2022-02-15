@@ -3,25 +3,22 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 08/09/2021.
-//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+//  This file is part of OSCKit
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+//  OSCKit is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+//  OSCKit is distributed in the hope that it will be useful
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -64,6 +61,7 @@ public class OSCUdpPeer: NSObject {
     /// when sending packets.
     ///
     /// Setting this property will stop the peer from sending and receiving packets.
+    /// - Note: To receive broadcasted packets (Directed or Limited) into the peers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopRunning()
@@ -94,21 +92,21 @@ public class OSCUdpPeer: NSObject {
     /// to allow for multiple processes to simultaneously bind to the same port.
     public private(set) var reusePort: Bool = false
     
-    /// The timeout for the send opeartion.
+    /// The timeout for the send operartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = 3
     
     /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
     ///
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var sendingPackets: [Int: OSCSentPacket] = [:]
 
     /// A sequential tag that is increased and associated with each packet sent.
     ///
     /// The tag will wrap around to 0 if the maximum amount has been reached.
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var tag: Int = 0
 
     /// The dispatch queue that the peer executes all delegate callbacks on.
@@ -128,9 +126,8 @@ public class OSCUdpPeer: NSObject {
                 delegate: OSCUdpPeerDelegate? = nil,
                 queue: DispatchQueue = .main) {
         socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
             interface = nil
         }
@@ -174,7 +171,7 @@ public class OSCUdpPeer: NSObject {
 
     // MARK: Running
 
-    /// Start the peer running
+    /// Start the peer running.
     ///
     /// The peer will bind its socket to a port. If an interface has been set,
     /// it will also bind to that so packets are only received through that interface;
@@ -263,10 +260,14 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
         guard let host = GCDAsyncUdpSocket.host(fromAddress: address) else { return }
         do {
             let packet = try OSCParser.packet(from: data)
-            delegate?.peer(self,
-                           didReceivePacket: packet,
-                           fromHost: host,
-                           port: GCDAsyncUdpSocket.port(fromAddress: address))
+            if let message = OSCKit.message(for: packet) {
+                try? send(message)
+            } else {
+                delegate?.peer(self,
+                               didReceivePacket: packet,
+                               fromHost: host,
+                               port: GCDAsyncUdpSocket.port(fromAddress: address))
+            }
         } catch {
             delegate?.peer(self,
                            didReadData: data,
@@ -286,20 +287,24 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didSendDataWithTag tag: Int) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
-        delegate?.peer(self,
-                       didSendPacket: sentPacket.packet,
-                       fromHost: sentPacket.host,
-                       port: sentPacket.port)
+        if OSCKit.listening(for: sentPacket.packet) {
+            delegate?.peer(self,
+                           didSendPacket: sentPacket.packet,
+                           fromHost: sentPacket.host,
+                           port: sentPacket.port)
+        }
     }
 
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
-        delegate?.peer(self,
-                       didNotSendPacket: sentPacket.packet,
-                       fromHost: sentPacket.host,
-                       port: sentPacket.port,
-                       error: error)
+        if OSCKit.listening(for: sentPacket.packet) {
+            delegate?.peer(self,
+                           didNotSendPacket: sentPacket.packet,
+                           fromHost: sentPacket.host,
+                           port: sentPacket.port,
+                           error: error)            
+        }
     }
 
 }

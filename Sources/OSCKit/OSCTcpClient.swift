@@ -3,25 +3,22 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 09/07/2021.
-//  Copyright © 2020 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+//  This file is part of OSCKit
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+//  OSCKit is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+//  OSCKit is distributed in the hope that it will be useful
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -59,11 +56,11 @@ public class OSCTcpClient: NSObject {
     /// The clients local port.
     public var localPort: UInt16? { socket.localPort }
 
-    /// The timeout for the connect opeartion.
+    /// The timeout for the connect operartion.
     /// If the timeout value is negative, the connect operation will not use a timeout.
     public var connectingTimeout: TimeInterval = 1
 
-    /// The timeout for the send opeartion.
+    /// The timeout for the send operartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = -1
 
@@ -143,7 +140,11 @@ public class OSCTcpClient: NSObject {
     public init(configuration: OSCTcpClientConfiguration,
                 delegate: OSCTcpClientDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        interface = configuration.interface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
+        } else {
+            interface = nil
+        }
         host = configuration.host
         port = configuration.port
         streamFraming = configuration.streamFraming
@@ -206,7 +207,7 @@ public class OSCTcpClient: NSObject {
     /// - Parameter packet: The packet to be sent, either an `OSCMessage` or `OSCBundle`.
     /// - Throws: An error if the client is not already connected and connecting causes an error.
     ///
-    /// If  the client is not already connected to a server `connect()` will be called first.
+    /// If the client is not already connected to a server `connect()` will be called first.
     public func send(_ packet: OSCPacket) throws {
         try connect()
         guard isConnected else { return }
@@ -228,7 +229,7 @@ public class OSCTcpClient: NSObject {
     /// - Throws: An error if a packet can't be parsed from the data or if the client is not
     ///           already connected and connecting causes an error.
     ///
-    /// If  the client is not already connected to a server `connect()` will be called first.
+    /// If the client is not already connected to a server `connect()` will be called first.
     public func send(_ data: Data) throws {
         try connect()
         let packet = try OSCParser.packet(from: data)
@@ -268,7 +269,11 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
                                       dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
-                    delegate.client(strongSelf, didReceivePacket: packet)
+                    if let message = OSCKit.message(for: packet) {
+                        try? strongSelf.send(message)
+                    } else {
+                        delegate.client(strongSelf, didReceivePacket: packet)
+                    }
                 })
             case .PLH:
                 try OSCTcp.decodePLH(data,
@@ -276,20 +281,28 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
                                      dispatchHandler: { [weak self] packet in
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
-                    delegate.client(strongSelf, didReceivePacket: packet)
+                    if let message = OSCKit.message(for: packet) {
+                        try? strongSelf.send(message)
+                    } else {
+                        delegate.client(strongSelf, didReceivePacket: packet)
+                    }
                 })
             }
-            sock.readData(withTimeout: timeout, tag: 0)
         } catch {
             delegate?.client(self, didReadData: data, with: error)
+            
         }
+        sock.readData(withTimeout: timeout, tag: 0)
     }
 
     public func socket(_ sock: GCDAsyncSocket,
                        didWriteDataWithTag tag: Int) {
         guard let packet = sendingMessages[tag] else { return }
         sendingMessages[tag] = nil
-        delegate?.client(self, didSendPacket: packet)
+        if OSCKit.listening(for: packet) {
+            delegate?.client(self, didSendPacket: packet)
+        }
+
     }
 
     public func socketDidDisconnect(_ sock: GCDAsyncSocket,
