@@ -155,8 +155,8 @@ public class OSCUdpPeer: NSObject {
                             delegate: OSCUdpPeerDelegate? = nil,
                             queue: DispatchQueue = .main) {
         let configuration = OSCUdpPeerConfiguration(interface: interface,
-                                                    port: port,
                                                     host: host,
+                                                    port: port,
                                                     hostPort: hostPort)
         self.init(configuration: configuration,
                   delegate: delegate,
