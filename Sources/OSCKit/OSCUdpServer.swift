@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -63,6 +63,7 @@ public class OSCUdpServer: NSObject {
     private let socket: GCDAsyncUdpSocket
 
     /// A `Set` of multicast groups that should be joined automatically when the server starts listening.
+    /// - Note: A non empty `Set` of multicast groups will force the socket to **not** bind to an interface.
     public var multicastGroups: Set<String>
 
     /// A `Set` of multicast groups that have been joined by the server.
@@ -75,7 +76,8 @@ public class OSCUdpServer: NSObject {
     /// If the value of this is nil the server will listen on all interfaces.
     ///
     /// Setting this property will stop the server listening.
-    /// - Note: To receive broadcasted packets (Directed or Limited) into the servers socket, this value must be nil.
+    /// - Note: The socket will bind to this interface only if `multicastGroups` is empty.
+    /// To receive broadcasted packets (Directed or Limited) into the servers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopListening()
@@ -114,14 +116,20 @@ public class OSCUdpServer: NSObject {
     public init(configuration: OSCUdpServerConfiguration,
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
+<<<<<<< HEAD
+        self.socket = GCDAsyncUdpSocket()
+        if configuration.interface?.isEmpty == false {
+            self.interface = configuration.interface
+=======
         socket = GCDAsyncUdpSocket()
         if configuration.interface?.isEmpty == false {
             interface = configuration.interface
+>>>>>>> origin/main
         } else {
-            interface = nil
+            self.interface = nil
         }
-        port = configuration.port
-        multicastGroups = configuration.multicastGroups
+        self.port = configuration.port
+        self.multicastGroups = configuration.multicastGroups
         self.delegate = delegate
         self.queue = queue
         super.init()
@@ -170,7 +178,11 @@ public class OSCUdpServer: NSObject {
     /// which multicast groups the server is currently listening to.
     public func startListening() throws {
         guard isListening == false else { return }
-        try socket.bind(toPort: port, interface: interface)
+        if multicastGroups.isEmpty {
+            try socket.bind(toPort: port, interface: interface)
+        } else {
+            try socket.bind(toPort: port)
+        }
         try socket.beginReceiving()
         isListening = true
         for multicastGroup in multicastGroups {
