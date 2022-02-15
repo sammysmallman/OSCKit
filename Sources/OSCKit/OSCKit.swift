@@ -47,7 +47,7 @@ public enum OSCKit {
     static let coreOscVersion: String = "/sdk/coreosc/version"
     /// An address pattern for retrieving the sdk's license.
     static let coreOscLicense: String = "/sdk/coreosc/license"
-    
+
     /// Returns an `OSCMessage` response corresponding to the given packet.
     static func message(for packet: OSCPacket) -> OSCMessage? {
         guard let message = packet as? OSCMessage else { return nil }
