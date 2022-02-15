@@ -78,6 +78,7 @@ public class OSCUdpServer: NSObject {
     /// If the value of this is nil the server will listen on all interfaces.
     ///
     /// Setting this property will stop the server listening.
+    /// - Note: To receive broadcasted packets (Directed or Limited) into the servers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopListening()

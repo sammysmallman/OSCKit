@@ -64,6 +64,7 @@ public class OSCUdpPeer: NSObject {
     /// when sending packets.
     ///
     /// Setting this property will stop the peer from sending and receiving packets.
+    /// - Note: To receive broadcasted packets (Directed or Limited) into the peers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopRunning()
