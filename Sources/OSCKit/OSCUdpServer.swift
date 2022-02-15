@@ -66,6 +66,7 @@ public class OSCUdpServer: NSObject {
     private let socket: GCDAsyncUdpSocket
 
     /// A `Set` of multicast groups that should be joined automatically when the server starts listening.
+    /// - Note: A non empty `Set` of multicast groups will force the socket to **not** bind to an interface.
     public var multicastGroups: Set<String>
 
     /// A `Set` of multicast groups that have been joined by the server.
@@ -78,6 +79,7 @@ public class OSCUdpServer: NSObject {
     /// If the value of this is nil the server will listen on all interfaces.
     ///
     /// Setting this property will stop the server listening.
+    /// - Note: The socket will bind to this interface only if `multicastGroups` is empty.
     public var interface: String? {
         didSet {
             stopListening()
@@ -116,15 +118,14 @@ public class OSCUdpServer: NSObject {
     public init(configuration: OSCUdpServerConfiguration,
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        self.socket = GCDAsyncUdpSocket()
+        if configuration.interface?.isEmpty == false {
+            self.interface = configuration.interface
         } else {
-            interface = nil
+            self.interface = nil
         }
-        port = configuration.port
-        multicastGroups = configuration.multicastGroups
+        self.port = configuration.port
+        self.multicastGroups = configuration.multicastGroups
         self.delegate = delegate
         self.queue = queue
         super.init()
@@ -174,7 +175,11 @@ public class OSCUdpServer: NSObject {
     /// which multicast groups the server is currently listening to.
     public func startListening() throws {
         guard isListening == false else { return }
-        try socket.bind(toPort: port, interface: interface)
+        if multicastGroups.isEmpty {
+            try socket.bind(toPort: port, interface: interface)
+        } else {
+            try socket.bind(toPort: port)
+        }
         try socket.beginReceiving()
         isListening = true
         for multicastGroup in multicastGroups {
