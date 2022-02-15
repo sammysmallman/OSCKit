@@ -114,11 +114,10 @@ public class OSCUdpServer: NSObject {
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
         socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
-            self.interface = nil
+            interface = nil
         }
         port = configuration.port
         multicastGroups = configuration.multicastGroups
@@ -156,7 +155,7 @@ public class OSCUdpServer: NSObject {
 
     // MARK: Listening
 
-    /// Start the server listening
+    /// Start the server listening.
     /// - Throws: An error relating to the binding of a socket.
     /// Although this method does automatically attempt to join the multicast groups after successfully
     /// starting to listen, those errors are not handled here.

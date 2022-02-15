@@ -391,7 +391,7 @@ OSCKit is supported by the infrastructural code provided by [CoreOSC](https://gi
 
 **Sammy Smallman** - *Initial Work* - [SammySmallman](https://github.com/sammysmallman)
 
-See also the list of [contributors](https://github.com/SammyTheHand/OSCKit/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/sammysmallman/OSCKit/graphs/contributors) who participated in this project.
 
 ## Acknowledgments
 

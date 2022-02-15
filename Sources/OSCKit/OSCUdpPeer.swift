@@ -91,21 +91,21 @@ public class OSCUdpPeer: NSObject {
     /// to allow for multiple processes to simultaneously bind to the same port.
     public private(set) var reusePort: Bool = false
     
-    /// The timeout for the send opeartion.
+    /// The timeout for the send operartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = 3
     
     /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
     ///
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var sendingPackets: [Int: OSCSentPacket] = [:]
 
     /// A sequential tag that is increased and associated with each packet sent.
     ///
     /// The tag will wrap around to 0 if the maximum amount has been reached.
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var tag: Int = 0
 
     /// The dispatch queue that the peer executes all delegate callbacks on.
@@ -125,9 +125,8 @@ public class OSCUdpPeer: NSObject {
                 delegate: OSCUdpPeerDelegate? = nil,
                 queue: DispatchQueue = .main) {
         socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
             interface = nil
         }
@@ -171,7 +170,7 @@ public class OSCUdpPeer: NSObject {
 
     // MARK: Running
 
-    /// Start the peer running
+    /// Start the peer running.
     ///
     /// The peer will bind its socket to a port. If an interface has been set,
     /// it will also bind to that so packets are only received through that interface;

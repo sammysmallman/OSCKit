@@ -50,7 +50,7 @@ internal struct OSCTcp {
     ///   - packet: The `OSCPacket` to be sent.
     ///   - streamFraming: The method the packet will be encoded with.
     ///   - socket: A TCP socket.
-    ///   - timeout: The timeout for the send opeartion. If the timeout value is negative,
+    ///   - timeout: The timeout for the send operartion. If the timeout value is negative,
     ///              the send operation will not use a timeout.
     ///   - tag: A convenienve tag, reported back with the
     ///          GCDAsyncSocketDelegate method `socket(_:didWriteDataWithTag:)`.
@@ -71,7 +71,7 @@ internal struct OSCTcp {
     ///   - data: Data from an `OSCPacket`.
     ///   - streamFraming: The method the packet will be encoded with.
     ///   - socket: A TCP socket.
-    ///   - timeout: The timeout for the send opeartion. If the timeout value is negative,
+    ///   - timeout: The timeout for the send operartion. If the timeout value is negative,
     ///              the send operation will not use a timeout.
     ///   - tag: A convenienve tag, reported back with the
     ///          GCDAsyncSocketDelegate method `socket(_:didWriteDataWithTag:)`.

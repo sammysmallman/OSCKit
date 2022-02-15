@@ -27,13 +27,11 @@ extension UInt32 {
 
     internal func byteArray() -> [UInt8] {
         var bigEndian = self.bigEndian
-        let count = MemoryLayout<UInt32>.size
-        let bytePtr = withUnsafePointer(to: &bigEndian) {
-            $0.withMemoryRebound(to: UInt8.self, capacity: count) {
-                UnsafeBufferPointer(start: $0, count: count)
+        return Array(withUnsafePointer(to: &bigEndian) {
+            $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<UInt32>.size) {
+                UnsafeBufferPointer(start: $0, count: MemoryLayout<UInt32>.size)
             }
-        }
-        return Array(bytePtr)
+        })
     }
 
 }
