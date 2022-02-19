@@ -116,15 +116,9 @@ public class OSCUdpServer: NSObject {
     public init(configuration: OSCUdpServerConfiguration,
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
-<<<<<<< HEAD
         self.socket = GCDAsyncUdpSocket()
         if configuration.interface?.isEmpty == false {
-            self.interface = configuration.interface
-=======
-        socket = GCDAsyncUdpSocket()
-        if configuration.interface?.isEmpty == false {
             interface = configuration.interface
->>>>>>> origin/main
         } else {
             self.interface = nil
         }
