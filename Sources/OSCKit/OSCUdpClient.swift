@@ -64,14 +64,40 @@ public class OSCUdpClient: NSObject {
 
     /// The port of the host the client should send packets to.
     public var port: UInt16
+    
+    /// A key associated with the `queue` to enable a check that the
+    /// execution of a method is carried out on the correct context.
+    private let queueKey : DispatchSpecificKey<Int>
+    
+    /// A random UInt32 value paired with the `queueKey` associated with the `queue`
+    /// to enable a check that the execution of a method is carried out on the correct context.
+    private let queueKeyValue: Int
 
     /// The dispatch queue that the client executes all delegate callbacks on.
     private let queue: DispatchQueue
 
+    /// The clients real delegate presented as a facade by `delegate` for thread safety.
+    private weak var _delegate: OSCUdpClientDelegate?
+    
     /// The clients delegate.
     ///
     /// The delegate must conform to the `OSCUdpClientDelegate` protocol.
-    public weak var delegate: OSCUdpClientDelegate?
+    public var delegate: OSCUdpClientDelegate? {
+        get {
+            if DispatchQueue.getSpecific(key: queueKey) == queueKeyValue {
+                return _delegate
+            } else {
+                return queue.sync { _delegate }
+            }
+        }
+        set {
+            if DispatchQueue.getSpecific(key: queueKey) == queueKeyValue {
+                _delegate = newValue
+            } else {
+                queue.sync { _delegate = newValue }
+            }
+        }
+    }
 
     /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
     ///
@@ -95,14 +121,17 @@ public class OSCUdpClient: NSObject {
                 delegate: OSCUdpClientDelegate? = nil,
                 queue: DispatchQueue = .main) {
         if configuration.interface?.isEmpty == false {
-            interface = configuration.interface
+            self.interface = configuration.interface
         } else {
-            interface = nil
+            self.interface = nil
         }
-        host = configuration.host
-        port = configuration.port
-        self.delegate = delegate
+        self.host = configuration.host
+        self.port = configuration.port
+        self._delegate = delegate
         self.queue = queue
+        self.queueKey = DispatchSpecificKey<Int>()
+        self.queueKeyValue = Int(arc4random())
+        self.queue.setSpecific(key: queueKey, value: queueKeyValue)
         super.init()
         socket.setDelegate(self, delegateQueue: queue)
     }
@@ -128,6 +157,7 @@ public class OSCUdpClient: NSObject {
     }
 
     deinit {
+        queue.setSpecific(key: queueKey, value: nil)
         socket.synchronouslySetDelegate(nil)
     }
 
@@ -177,16 +207,31 @@ public class OSCUdpClient: NSObject {
             // Port 0 means that the OS should choose a random ephemeral port for this socket.
             try socket.bind(toPort: 0, interface: interface)
         }
-        sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
-                                            port: socket.localPort(),
-                                            packet: packet)
+        let queueCheck: Bool = DispatchQueue.getSpecific(key: queueKey) == queueKeyValue
+        if queueCheck {
+            sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
+                                                port: socket.localPort(),
+                                                packet: packet)
+        } else {
+            queue.sync {
+                sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
+                                                    port: socket.localPort(),
+                                                    packet: packet)
+            }
+        }
         socket.send(data,
                     toHost: host,
                     port: port,
                     withTimeout: timeout,
                     tag: tag)
         socket.closeAfterSending()
-        tag = tag == Int.max ? 0 : tag + 1
+        if queueCheck {
+            tag = tag == Int.max ? 0 : tag + 1
+        } else {
+            queue.sync {
+                tag = tag == Int.max ? 0 : tag + 1
+            }
+        }
     }
 
 }
@@ -198,7 +243,7 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                           didSendDataWithTag tag: Int) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
-        delegate?.client(self,
+        _delegate?.client(self,
                          didSendPacket: sentPacket.packet,
                          fromHost: sentPacket.host,
                          port: sentPacket.port)
@@ -209,7 +254,7 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                           dueToError error: Error?) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
-        delegate?.client(self,
+        _delegate?.client(self,
                          didNotSendPacket: sentPacket.packet,
                          fromHost: sentPacket.host,
                          port: sentPacket.port,
@@ -220,7 +265,7 @@ extension OSCUdpClient: GCDAsyncUdpSocketDelegate {
                                   withError error: Error?) {
         guard let error = error else { return }
         sendingPackets.removeAll()
-        delegate?.client(self, socketDidCloseWithError: error)
+        _delegate?.client(self, socketDidCloseWithError: error)
     }
 
 }
