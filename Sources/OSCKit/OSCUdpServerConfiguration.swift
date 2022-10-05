@@ -24,17 +24,21 @@
 import Foundation
 
 /// A configuration object that defines the behavior of a UDP server.
-@objc(OSCUdpServerConfiguration) public class OSCUdpServerConfiguration: NSObject, NSSecureCoding, Codable {
-
+@objc(OSCUdpServerConfiguration) public class OSCUdpServerConfiguration: NSObject, NSSecureCoding, Codable, Identifiable {
+    
     /// A textual representation of this instance.
     public override var description: String {
         """
         OSCKit.OSCUdpServerConfiguration(\
+        id: \(id.uuidString), \
         interface: \(String(describing: interface)), \
         port: \(port), \
         multicastGroups: Set(\(multicastGroups)))
         """
     }
+    
+    /// A stable identity of this instance.
+    public let id: UUID
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
@@ -49,13 +53,16 @@ import Foundation
 
     /// A configuration object that defines the behavior of a UDP server.
     /// - Parameters:
+    ///   - id: A stable identity for this instance.
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address
     ///   or nil if the server should listen on all interfaces.
     ///   - port: The port the server should listen for packets on.
     ///   - multicastGroups: A `Set` of  multicast groups that the server should join.
-    public init(interface: String?,
+    public init(id: UUID = .init(),
+                interface: String?,
                 port: UInt16,
                 multicastGroups: Set<String> = []) {
+        self.id = id
         self.interface = interface
         self.port = port
         self.multicastGroups = multicastGroups
@@ -68,6 +75,9 @@ import Foundation
     /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
     public static var supportsSecureCoding: Bool = true
 
+    /// A key that defines the `id` of an `OSCUdpServerConfiguration`.
+    private static let idKey = "idKey"
+    
     /// A key that defines the `interface` of an `OSCUdpServer`.
     private static let interfaceKey = "interfaceKey"
 
@@ -75,22 +85,25 @@ import Foundation
     private static let portKey = "portKey"
 
     /// A key that defines the `multicastGroups` of an `OSCUdpServer`.
-    private static let multicastGroupsKey = "multicastGroupssKey"
+    private static let multicastGroupsKey = "multicastGroupsKey"
 
     /// A configuration object that defines the behavior of a UDP server from data in a given unarchiver.
     public required init?(coder: NSCoder) {
-        guard let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?,
+        guard let interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as? String,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as? Data,
               let multicastGroups = coder.decodeObject(forKey: Self.multicastGroupsKey) as? Set<String>
         else {
             return nil
         }
-        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.id = coder.decodeObject(of: NSUUID.self, forKey: Self.idKey) as? UUID ?? .init()
+        self.interface = interface
         self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
         self.multicastGroups = multicastGroups
     }
 
     /// Encodes this instance using a given archiver.
     public func encode(with coder: NSCoder) {
+        coder.encode(id, forKey: Self.idKey)
         coder.encode(interface, forKey: Self.interfaceKey)
         // Port could potentially be encoded as an NSInteger...
         coder.encode(port.bigEndian.data, forKey: Self.portKey)
