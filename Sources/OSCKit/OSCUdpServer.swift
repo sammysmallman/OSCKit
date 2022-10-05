@@ -67,10 +67,10 @@ public class OSCUdpServer: NSObject {
     public var multicastGroups: Set<String>
 
     /// A `Set` of multicast groups that have been joined by the server.
-    public var joinedMulticastGroups: Set<String> = []
+    public private(set) var joinedMulticastGroups: Set<String> = []
 
     /// A boolean value that indicates whether the server is listening for OSC packets.
-    public var isListening: Bool = false
+    public private(set) var isListening: Bool = false
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
@@ -98,7 +98,7 @@ public class OSCUdpServer: NSObject {
 
     /// A boolean value that indicates whether the servers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
-    public var reusePort: Bool = false
+    public private(set) var reusePort: Bool = false
 
     /// The dispatch queue that the server executes all delegate callbacks on.
     private let queue: DispatchQueue
@@ -217,8 +217,13 @@ public class OSCUdpServer: NSObject {
     /// This includes other applications attempting to use the same port...
     public func enableReusePort(_ flag: Bool) throws {
         stopListening()
-        try socket.enableBroadcast(flag)
-        reusePort = flag
+        do {
+            try socket.enableReusePort(flag)
+            reusePort = flag
+        } catch {
+            reusePort = false
+            throw error
+        }
     }
 
     // MARK: Multicasting
