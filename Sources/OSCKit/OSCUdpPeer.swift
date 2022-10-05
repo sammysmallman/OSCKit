@@ -109,13 +109,39 @@ public class OSCUdpPeer: NSObject {
     /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var tag: Int = 0
 
+    /// A key associated with the `queue` to enable a check that the
+    /// execution of a method is carried out on the correct context.
+    private let queueKey : DispatchSpecificKey<Int>
+    
+    /// A random UInt32 value paired with the `queueKey` associated with the `queue`
+    /// to enable a check that the execution of a method is carried out on the correct context.
+    private let queueKeyValue: Int
+    
     /// The dispatch queue that the peer executes all delegate callbacks on.
     private let queue: DispatchQueue
+    
+    /// The clients real delegate presented as a facade by `delegate` for thread safety.
+    private weak var _delegate: OSCUdpPeerDelegate?
 
     /// The peers delegate.
     ///
     /// The delegate must conform to the `OSCUdpPeerDelegate` protocol.
-    public weak var delegate: OSCUdpPeerDelegate?
+    public weak var delegate: OSCUdpPeerDelegate? {
+        get {
+            if DispatchQueue.getSpecific(key: queueKey) == queueKeyValue {
+                return _delegate
+            } else {
+                return queue.sync { _delegate }
+            }
+        }
+        set {
+            if DispatchQueue.getSpecific(key: queueKey) == queueKeyValue {
+                _delegate = newValue
+            } else {
+                queue.sync { _delegate = newValue }
+            }
+        }
+    }
 
     /// An OSC UDP Peer.
     /// - Parameters:
@@ -134,8 +160,11 @@ public class OSCUdpPeer: NSObject {
         host = configuration.host
         port = configuration.port
         hostPort = configuration.hostPort
-        self.delegate = delegate
+        self._delegate = delegate
         self.queue = queue
+        self.queueKey = DispatchSpecificKey<Int>()
+        self.queueKeyValue = Int(arc4random())
+        self.queue.setSpecific(key: queueKey, value: queueKeyValue)
         super.init()
         socket.setDelegate(self, delegateQueue: queue)
     }
@@ -166,6 +195,7 @@ public class OSCUdpPeer: NSObject {
 
     deinit {
         stopRunning()
+        queue.setSpecific(key: queueKey, value: nil)
         socket.synchronouslySetDelegate(nil)
     }
 
@@ -237,15 +267,30 @@ public class OSCUdpPeer: NSObject {
     /// Therefore by passing it into this function allows for us to not calculate it
     /// once more when send(_:Data) is called.
     private func send(packet: OSCPacket, with data: Data) throws {
-        sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
-                                            port: socket.localPort(),
-                                            packet: packet)
+        let queueCheck: Bool = DispatchQueue.getSpecific(key: queueKey) == queueKeyValue
+        if queueCheck {
+            sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
+                                                port: socket.localPort(),
+                                                packet: packet)
+        } else {
+            queue.sync {
+                sendingPackets[tag] = OSCSentPacket(host: socket.localHost(),
+                                                    port: socket.localPort(),
+                                                    packet: packet)
+            }
+        }
         socket.send(data,
                     toHost: host,
                     port: hostPort,
                     withTimeout: timeout,
                     tag: tag)
-        tag = tag == Int.max ? 0 : tag + 1
+        if queueCheck {
+            tag &+= 1
+        } else {
+            queue.sync {
+                tag &+= 1
+            }
+        }
     }
 
 }
@@ -263,15 +308,15 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
             if let message = OSCKit.message(for: packet) {
                 try? send(message)
             } else {
-                delegate?.peer(self,
-                               didReceivePacket: packet,
-                               fromHost: host,
-                               port: GCDAsyncUdpSocket.port(fromAddress: address))
+                _delegate?.peer(self,
+                                didReceivePacket: packet,
+                                fromHost: host,
+                                port: GCDAsyncUdpSocket.port(fromAddress: address))
             }
         } catch {
-            delegate?.peer(self,
-                           didReadData: data,
-                           with: error)
+            _delegate?.peer(self,
+                            didReadData: data,
+                            with: error)
         }
         if !isRunning {
             isRunning = true
@@ -284,26 +329,29 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
         delegate?.peer(self, socketDidCloseWithError: error)
     }
     
-    public func udpSocket(_ sock: GCDAsyncUdpSocket, didSendDataWithTag tag: Int) {
+    public func udpSocket(_ sock: GCDAsyncUdpSocket,
+                          didSendDataWithTag tag: Int) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
         if OSCKit.listening(for: sentPacket.packet) {
-            delegate?.peer(self,
-                           didSendPacket: sentPacket.packet,
-                           fromHost: sentPacket.host,
-                           port: sentPacket.port)
+            _delegate?.peer(self,
+                            didSendPacket: sentPacket.packet,
+                            fromHost: sentPacket.host,
+                            port: sentPacket.port)
         }
     }
 
-    public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
+    public func udpSocket(_ sock: GCDAsyncUdpSocket,
+                          didNotSendDataWithTag tag: Int,
+                          dueToError error: Error?) {
         guard let sentPacket = sendingPackets[tag] else { return }
         sendingPackets[tag] = nil
         if OSCKit.listening(for: sentPacket.packet) {
-            delegate?.peer(self,
-                           didNotSendPacket: sentPacket.packet,
-                           fromHost: sentPacket.host,
-                           port: sentPacket.port,
-                           error: error)            
+            _delegate?.peer(self,
+                            didNotSendPacket: sentPacket.packet,
+                            fromHost: sentPacket.host,
+                            port: sentPacket.port,
+                            error: error)            
         }
     }
 

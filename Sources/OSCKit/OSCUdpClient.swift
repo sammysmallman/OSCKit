@@ -65,6 +65,19 @@ public class OSCUdpClient: NSObject {
     /// The port of the host the client should send packets to.
     public var port: UInt16
     
+    /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
+    ///
+    /// This allows for a reference to a sent packet when the
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    private var sendingPackets: [Int: OSCSentPacket] = [:]
+
+    /// A sequential tag that is increased and associated with each packet sent.
+    ///
+    /// The tag will wrap around to 0 if the maximum amount has been reached.
+    /// This allows for a reference to a sent packet when the
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    private var tag: Int = 0
+    
     /// A key associated with the `queue` to enable a check that the
     /// execution of a method is carried out on the correct context.
     private let queueKey : DispatchSpecificKey<Int>
@@ -98,19 +111,6 @@ public class OSCUdpClient: NSObject {
             }
         }
     }
-
-    /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
-    ///
-    /// This allows for a reference to a sent packet when the
-    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
-    private var sendingPackets: [Int: OSCSentPacket] = [:]
-
-    /// A sequential tag that is increased and associated with each packet sent.
-    ///
-    /// The tag will wrap around to 0 if the maximum amount has been reached.
-    /// This allows for a reference to a sent packet when the
-    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
-    private var tag: Int = 0
 
     /// An OSC UDP Client.
     /// - Parameters:
@@ -226,10 +226,10 @@ public class OSCUdpClient: NSObject {
                     tag: tag)
         socket.closeAfterSending()
         if queueCheck {
-            tag = tag == Int.max ? 0 : tag + 1
+            tag &+= 1
         } else {
             queue.sync {
-                tag = tag == Int.max ? 0 : tag + 1
+                tag &+= 1
             }
         }
     }
