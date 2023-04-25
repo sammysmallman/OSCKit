@@ -18,7 +18,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -29,7 +29,7 @@ import XCTest
 class OSCKitTests: XCTestCase {
 
     func testVersion() {
-        XCTAssertEqual(OSCKit.version, "3.1.0")
+        XCTAssertEqual(OSCKit.version, "3.2.0")
     }
     
     func testLicense() {

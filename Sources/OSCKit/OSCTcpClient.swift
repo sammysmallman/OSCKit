@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -56,11 +56,11 @@ public class OSCTcpClient: NSObject {
     /// The clients local port.
     public var localPort: UInt16? { socket.localPort }
 
-    /// The timeout for the connect opeartion.
+    /// The timeout for the connect operartion.
     /// If the timeout value is negative, the connect operation will not use a timeout.
     public var connectingTimeout: TimeInterval = 1
 
-    /// The timeout for the send opeartion.
+    /// The timeout for the send operartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = -1
 
@@ -140,7 +140,11 @@ public class OSCTcpClient: NSObject {
     public init(configuration: OSCTcpClientConfiguration,
                 delegate: OSCTcpClientDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        interface = configuration.interface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
+        } else {
+            interface = nil
+        }
         host = configuration.host
         port = configuration.port
         streamFraming = configuration.streamFraming

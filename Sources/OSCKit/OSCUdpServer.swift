@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -63,18 +63,21 @@ public class OSCUdpServer: NSObject {
     private let socket: GCDAsyncUdpSocket
 
     /// A `Set` of multicast groups that should be joined automatically when the server starts listening.
+    /// - Note: A non empty `Set` of multicast groups will force the socket to **not** bind to an interface.
     public var multicastGroups: Set<String>
 
     /// A `Set` of multicast groups that have been joined by the server.
-    public var joinedMulticastGroups: Set<String> = []
+    public private(set) var joinedMulticastGroups: Set<String> = []
 
     /// A boolean value that indicates whether the server is listening for OSC packets.
-    public var isListening: Bool = false
+    public private(set) var isListening: Bool = false
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
     ///
     /// Setting this property will stop the server listening.
+    /// - Note: The socket will bind to this interface only if `multicastGroups` is empty.
+    /// To receive broadcasted packets (Directed or Limited) into the servers socket, this value must be nil.
     public var interface: String? {
         didSet {
             stopListening()
@@ -95,7 +98,7 @@ public class OSCUdpServer: NSObject {
 
     /// A boolean value that indicates whether the servers socket has been enabled
     /// to allow for multiple processes to simultaneously bind to the same port.
-    public var reusePort: Bool = false
+    public private(set) var reusePort: Bool = false
 
     /// The dispatch queue that the server executes all delegate callbacks on.
     private let queue: DispatchQueue
@@ -113,15 +116,14 @@ public class OSCUdpServer: NSObject {
     public init(configuration: OSCUdpServerConfiguration,
                 delegate: OSCUdpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        socket = GCDAsyncUdpSocket()
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        self.socket = GCDAsyncUdpSocket()
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
             self.interface = nil
         }
-        port = configuration.port
-        multicastGroups = configuration.multicastGroups
+        self.port = configuration.port
+        self.multicastGroups = configuration.multicastGroups
         self.delegate = delegate
         self.queue = queue
         super.init()
@@ -156,7 +158,7 @@ public class OSCUdpServer: NSObject {
 
     // MARK: Listening
 
-    /// Start the server listening
+    /// Start the server listening.
     /// - Throws: An error relating to the binding of a socket.
     /// Although this method does automatically attempt to join the multicast groups after successfully
     /// starting to listen, those errors are not handled here.
@@ -170,7 +172,11 @@ public class OSCUdpServer: NSObject {
     /// which multicast groups the server is currently listening to.
     public func startListening() throws {
         guard isListening == false else { return }
-        try socket.bind(toPort: port, interface: interface)
+        if multicastGroups.isEmpty {
+            try socket.bind(toPort: port, interface: interface)
+        } else {
+            try socket.bind(toPort: port)
+        }
         try socket.beginReceiving()
         isListening = true
         for multicastGroup in multicastGroups {
@@ -211,8 +217,13 @@ public class OSCUdpServer: NSObject {
     /// This includes other applications attempting to use the same port...
     public func enableReusePort(_ flag: Bool) throws {
         stopListening()
-        try socket.enableBroadcast(flag)
-        reusePort = flag
+        do {
+            try socket.enableReusePort(flag)
+            reusePort = flag
+        } catch {
+            reusePort = false
+            throw error
+        }
     }
 
     // MARK: Multicasting

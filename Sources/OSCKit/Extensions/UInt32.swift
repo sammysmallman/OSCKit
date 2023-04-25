@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -27,13 +27,11 @@ extension UInt32 {
 
     internal func byteArray() -> [UInt8] {
         var bigEndian = self.bigEndian
-        let count = MemoryLayout<UInt32>.size
-        let bytePtr = withUnsafePointer(to: &bigEndian) {
-            $0.withMemoryRebound(to: UInt8.self, capacity: count) {
-                UnsafeBufferPointer(start: $0, count: count)
+        return Array(withUnsafePointer(to: &bigEndian) {
+            $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<UInt32>.size) {
+                UnsafeBufferPointer(start: $0, count: MemoryLayout<UInt32>.size)
             }
-        }
-        return Array(bytePtr)
+        })
     }
 
 }

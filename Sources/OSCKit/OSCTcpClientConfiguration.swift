@@ -18,24 +18,28 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
 
 /// A configuration object that defines the behavior of a TCP client.
-@objc(OSCTcpClientConfiguration) public class OSCTcpClientConfiguration: NSObject, NSSecureCoding, Codable {
+@objc(OSCTcpClientConfiguration) public class OSCTcpClientConfiguration: NSObject, NSSecureCoding, Codable, Identifiable {
 
     /// A textual representation of this instance.
     public override var description: String {
         """
         OSCKit.OSCTcpClientConfiguration(\
+        id: \(id.uuidString), \
         interface: \(String(describing: interface)), \
         host: \(host), \
         port: \(port), \
         streamFraming: \(streamFraming))
         """
     }
+    
+    /// A stable identity of this instance.
+    public let id: UUID
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
@@ -58,15 +62,18 @@ import Foundation
 
     /// A configuration object that defines the behavior of a TCP client.
     /// - Parameters:
+    ///   - id: A stable identity for this instance.
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
     ///   - host: The host of the server that the client should connect to.
     ///   - port: The port of the host the client should send packets to.
     ///   - streamFraming: The stream framing all OSCPackets will be encoded and decoded with by the client.
-    ///                    OSC 1.0 uses packet length headers and OSC 1.1 uses the SLIP protocol.
-    public init(interface: String? = nil,
+    ///   OSC 1.0 uses packet length headers and OSC 1.1 uses the SLIP protocol.
+    public init(id: UUID = .init(),
+                interface: String? = nil,
                 host: String,
                 port: UInt16,
                 streamFraming: OSCTcpStreamFraming) {
+        self.id = id
         self.interface = interface
         self.port = port
         self.host = host
@@ -79,6 +86,9 @@ import Foundation
     ///
     /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
     public static var supportsSecureCoding: Bool = true
+    
+    /// A key that defines the `id` of an `OSCTcpClientConfiguration`.
+    private static let idKey = "idKey"
 
     /// A key that defines the `interface` of an `OSCTcpClient`.
     private static let interfaceKey = "interfaceKey"
@@ -94,13 +104,15 @@ import Foundation
 
     /// A configuration object that defines the behavior of a TCP server from data in a given unarchiver.
     public required init?(coder: NSCoder) {
-        guard let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as String?,
-              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?,
+        guard let interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as? String,
+              let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as? String,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as? Data,
               let streamFraming = OSCTcpStreamFraming(rawValue: coder.decodeInteger(forKey: Self.streamFramingKey))
         else {
             return nil
         }
-        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.id = coder.decodeObject(of: NSUUID.self, forKey: Self.idKey) as? UUID ?? .init()
+        self.interface = interface
         self.host = host
         self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
         self.streamFraming = streamFraming
@@ -108,6 +120,7 @@ import Foundation
 
     /// Encodes this instance using a given archiver.
     public func encode(with coder: NSCoder) {
+        coder.encode(id, forKey: Self.idKey)
         coder.encode(interface, forKey: Self.interfaceKey)
         coder.encode(host, forKey: Self.hostKey)
         // Port could potentially be encoded as an NSInteger...

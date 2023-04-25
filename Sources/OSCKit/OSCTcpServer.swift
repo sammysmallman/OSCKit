@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -58,7 +58,7 @@ public class OSCTcpServer: NSObject {
         sockets.compactMap { (host: $0.value.host, port: $0.value.port) }
     }
 
-    /// The timeout for the read and write opeartions.
+    /// The timeout for the read and write operartions.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = -1
 
@@ -127,11 +127,10 @@ public class OSCTcpServer: NSObject {
     public init(configuration: OSCTcpServerConfiguration,
                 delegate: OSCTcpServerDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            self.interface = configInterface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
-            self.interface = nil
+            interface = nil
         }
         port = configuration.port
         streamFraming = configuration.streamFraming
@@ -169,7 +168,7 @@ public class OSCTcpServer: NSObject {
 
     // MARK: Listening
 
-    /// Start the server listening
+    /// Start the server listening.
     /// - Throws: An error relating to the setting up of the socket.
     ///
     /// The server will accept connections on the servers port. If an interface

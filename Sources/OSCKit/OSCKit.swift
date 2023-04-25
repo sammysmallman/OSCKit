@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 // Export all submodules so they all import
@@ -30,7 +30,7 @@ import Foundation
 public enum OSCKit {
     
     /// This package's semantic version number, mirrored also in git history as a `git tag`.
-    static let version: String = "3.1.0"
+    static let version: String = "3.2.0"
     
     /// The license agreement this repository is licensed under.
     static let license: String = {
@@ -47,8 +47,8 @@ public enum OSCKit {
     static let coreOscVersion: String = "/sdk/coreosc/version"
     /// An address pattern for retrieving the sdk's license.
     static let coreOscLicense: String = "/sdk/coreosc/license"
-    
-    /// Returns a `OSCMessage` response corresponding to the given packet.
+
+    /// Returns an `OSCMessage` response corresponding to the given packet.
     static func message(for packet: OSCPacket) -> OSCMessage? {
         guard let message = packet as? OSCMessage else { return nil }
         switch message.addressPattern.fullPath {

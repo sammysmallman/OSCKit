@@ -18,47 +18,57 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
 
 /// A configuration object that defines the behavior of a UDP peer.
-@objc(OSCUdpPeerConfiguration) public class OSCUdpPeerConfiguration: NSObject, NSSecureCoding, Codable {
+@objc(OSCUdpPeerConfiguration) public class OSCUdpPeerConfiguration: NSObject, NSSecureCoding, Codable, Identifiable {
 
     /// A textual representation of this instance.
     public override var description: String {
         """
         OSCKit.OSCUdpPeerConfiguration(\
+        id: \(id.uuidString), \
         interface: \(String(describing: interface)), \
         host: \(host), \
         port: \(port), \
         hostPort: \(hostPort))
         """
     }
+    
+    /// A stable identity of this instance.
+    public let id: UUID
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the peer will use the default interface.
     public let interface: String?
+    
+    /// The port the peer should listen for packets on.
+    public let port: UInt16
 
     /// The destination the peer should send UDP packets to.
     /// May be specified as a domain name (e.g. "google.com") or an IP address string (e.g. "192.168.1.16").
     /// You may also use the convenience strings of "loopback" or "localhost".
     public let host: String
-
-    /// The port the peer should listen for packets on.
-    public let port: UInt16
     
     /// The port of the host the peer should send packets to.
     public let hostPort: UInt16
-
+    
     /// A configuration object that defines the behavior of a UDP peer.
     /// - Parameters:
+    ///   - id: A stable identity for this instance.
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
     ///   - host: The destination the peer should send UDP packets to.
     ///   - port: The port the peer should listen for packets on.
     ///   - hostPort: The port of the host the peer should send packets to.
-    public init(interface: String? = nil, host: String, port: UInt16, hostPort: UInt16) {
+    public init(id: UUID = .init(),
+                interface: String? = nil,
+                host: String,
+                port: UInt16,
+                hostPort: UInt16) {
+        self.id = id
         self.interface = interface
         self.host = host
         self.port = port
@@ -71,28 +81,33 @@ import Foundation
     ///
     /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
     public static var supportsSecureCoding: Bool = true
+    
+    /// A key that defines the `id` of an `OSCUdpPeerConfiguration`.
+    private static let idKey = "idKey"
 
     /// A key that defines the `interface` of an `OSCUdpPeer`.
     private static let interfaceKey = "interfaceKey"
-
+    
     /// A key that defines the `host` of an `OSCUdpPeer`.
     private static let hostKey = "hostKey"
-
+    
     /// A key that defines the `port` of an `OSCUdpPeer`.
     private static let portKey = "portKey"
-    
+
     /// A key that defines the `hostPort` of an `OSCUdpPeer`.
     private static let hostPortKey = "hostPortKey"
 
     /// A configuration object that defines the behavior of a UDP peer from data in a given unarchiver.
     public required init?(coder: NSCoder) {
-        guard let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as String?,
-              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?,
-              let hostPortData = coder.decodeObject(of: NSData.self, forKey: Self.hostPortKey) as Data?
+        guard let interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?,
+              let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as? String,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as? Data,
+              let hostPortData = coder.decodeObject(of: NSData.self, forKey: Self.hostPortKey) as? Data
         else {
             return nil
         }
-        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.id = coder.decodeObject(of: NSUUID.self, forKey: Self.idKey) as? UUID ?? .init()
+        self.interface = interface
         self.host = host
         self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
         self.hostPort = hostPortData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
@@ -100,6 +115,7 @@ import Foundation
 
     /// Encodes this instance using a given archiver.
     public func encode(with coder: NSCoder) {
+        coder.encode(id, forKey: Self.idKey)
         coder.encode(interface, forKey: Self.interfaceKey)
         coder.encode(host, forKey: Self.hostKey)
         // Port could potentially be encoded as an NSInteger...

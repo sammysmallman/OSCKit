@@ -6,14 +6,14 @@
 The OSCKit package provides the classes needed for your apps to communicate among computers, sound synthesizers, and other multimedia devices via [OSC](http://opensoundcontrol.org/README.html) over an IP network. 
 
 ## Overview
-Use the OSCKit package to create client or server objects. In its simplest form a client can send a packet, either a [Message](http://opensoundcontrol.org/spec-1_0.html#osc-messages) or [Bundle](http://opensoundcontrol.org/spec-1_0.html#osc-bundles) to a server. A server, when listening, can receive these packets and action upon them. Depending on a client or server using either UDP or TCP as a transport, there are varying levels of fuctionality and delegate methods for you to take advantage of.
+Use the OSCKit package to create client or server objects. In its simplest form a client can send a packet, either a [Message](http://opensoundcontrol.org/spec-1_0.html#osc-messages) or [Bundle](http://opensoundcontrol.org/spec-1_0.html#osc-bundles) to a server. A server, when listening, can receive these packets and action upon them. Depending on a client or server using either UDP or TCP as a transport, there are varying levels of functionality and delegate methods for you to take advantage of.
 
 OSCKit implements all required argument types as specified in [OSC 1.1](http://opensoundcontrol.org/files/2009-NIME-OSC-1.1.pdf).
 
 An example project can be found in [OSCKitDemo](https://github.com/sammysmallman/OSCKitDemo).
 
 ## License
-OSCKit is licensed under the GNU Affero General Public License, version 3. If you require a commercial license for an application that you would not like to trigger AGPLv3 obligations (e.g. open sourcing your application), please get in touch. The probability of obtaining a commerical license for free is high.
+OSCKit is licensed under the GNU Affero General Public License, version 3. If you require a commercial license for an application that you would not like to trigger AGPLv3 obligations (e.g. open sourcing your application), please get in touch. The probability of obtaining a commercial license for free is high.
 
 ## Features
 
@@ -39,7 +39,7 @@ Add the package dependency to your Package.swift and depend on "OSCKit" in the n
 
 ```  swift
 dependencies: [
-    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.1.0"))
+    .package(url: "https://github.com/SammySmallman/OSCKit", .upToNextMajor(from: "3.2.0"))
 ]
 ```
 
@@ -253,7 +253,6 @@ do {
 } catch {
     print("Unable to create OSCMessage: \(error.localizedDescription)")
 }
-
 ```
     
 <h4>Step 5</h4>
@@ -341,25 +340,38 @@ let peer = OSCUdpPeer(host: "10.101.130.101",
     
 Conform to the peers delegate protocol OSCUdpPeerDelegate:
 ```swift
-    func peer(_ peer: OSCUdpPeer, didReceivePacket packet: OSCPacket, fromHost host: String, port: UInt16) {
-        print("Peer did receive packet from \(host):\(port)")
-    }
+func peer(_ peer: OSCUdpPeer, 
+          didReceivePacket packet: OSCPacket, 
+          fromHost host: String, 
+          port: UInt16) {
+    print("Peer did receive packet from \(host):\(port)")
+}
 
-    func peer(_ peer: OSCUdpPeer, didReadData data: Data, with error: Error) {
-        print("Peer did read data with error: \(error.localizedDescription)")
-    }
+func peer(_ peer: OSCUdpPeer, 
+          didReadData data: Data, 
+          with error: Error) {
+    print("Peer did read data with error: \(error.localizedDescription)")
+}
 
-    func peer(_ peer: OSCUdpPeer, didSendPacket packet: OSCPacket, fromHost host: String?, port: UInt16?) {
-        print("Peer sent packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
-    }
+func peer(_ peer: OSCUdpPeer, 
+          didSendPacket packet: OSCPacket, 
+          fromHost host: String?, 
+          port: UInt16?) {
+    print("Peer sent packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
+}
 
-    func peer(_ peer: OSCUdpPeer, didNotSendPacket packet: OSCPacket, fromHost host: String?, port: UInt16?, error: Error?) {
-        print("Peer did not send packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
-    }
+func peer(_ peer: OSCUdpPeer, 
+          didNotSendPacket packet: OSCPacket, 
+          fromHost host: String?, 
+          port: UInt16?, 
+          error: Error?) {
+    print("Peer did not send packet to \(peer.host):\(peer.hostPort) from \(host):\(port)")
+}
 
-    func peer(_ peer: OSCUdpPeer, socketDidCloseWithError error: Error?) {
-        print("Peer Error: \(error.localizedDescription)")
-    }
+func peer(_ peer: OSCUdpPeer, 
+          socketDidCloseWithError error: Error?) {
+    print("Peer Error: \(error.localizedDescription)")
+}
 ```
   
 <h4>Step 4</h4>

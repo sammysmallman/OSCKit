@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -49,7 +49,7 @@ public class OSCUdpClient: NSObject {
     /// The clients UDP socket that all OSCPackets are sent from.
     private let socket: GCDAsyncUdpSocket = GCDAsyncUdpSocket()
 
-    /// The timeout for the send opeartion.
+    /// The timeout for the send operartion.
     /// If the timeout value is negative, the send operation will not use a timeout.
     public var timeout: TimeInterval = 3
 
@@ -76,14 +76,14 @@ public class OSCUdpClient: NSObject {
     /// A dictionary of `OSCPackets` keyed by the sequenced `tag` number.
     ///
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var sendingPackets: [Int: OSCSentPacket] = [:]
 
     /// A sequential tag that is increased and associated with each packet sent.
     ///
     /// The tag will wrap around to 0 if the maximum amount has been reached.
     /// This allows for a reference to a sent packet when the
-    /// GCDAsynUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
+    /// GCDAsyncUDPSocketDelegate method udpSocket(_:didSendDataWithTag:) is called.
     private var tag: Int = 0
 
     /// An OSC UDP Client.
@@ -94,9 +94,8 @@ public class OSCUdpClient: NSObject {
     public init(configuration: OSCUdpClientConfiguration,
                 delegate: OSCUdpClientDelegate? = nil,
                 queue: DispatchQueue = .main) {
-        if let configInterface = configuration.interface,
-           configInterface.isEmpty == false {
-            interface = configInterface
+        if configuration.interface?.isEmpty == false {
+            interface = configuration.interface
         } else {
             interface = nil
         }

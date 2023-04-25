@@ -18,7 +18,7 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
@@ -38,7 +38,7 @@ extension Interface {
     }
 
     open var displayText: String {
-        return "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
+        "\(self.displayName) (\(self.name)) - \(self.address ?? "")"
     }
     #endif
 }

@@ -18,23 +18,27 @@
 //  GNU Affero General Public License for more details.
 //
 //  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  along with this software. If not, see <http://www.gnu.org/licenses/>.
 //
 
 import Foundation
 
 /// A configuration object that defines the behavior of a UDP client.
-@objc(OSCUdpClientConfiguration) public class OSCUdpClientConfiguration: NSObject, NSSecureCoding, Codable {
+@objc(OSCUdpClientConfiguration) public class OSCUdpClientConfiguration: NSObject, NSSecureCoding, Codable, Identifiable {
 
     /// A textual representation of this instance.
     public override var description: String {
         """
         OSCKit.OSCUdpClientConfiguration(\
+        id: \(id.uuidString), \
         interface: \(String(describing: interface)), \
         host: \(host), \
         port: \(port))
         """
     }
+    
+    /// A stable identity of this instance.
+    public let id: UUID
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the client will use the default interface.
@@ -50,10 +54,15 @@ import Foundation
 
     /// A configuration object that defines the behavior of a UDP client.
     /// - Parameters:
+    ///   - id: A stable identity for this instance.
     ///   - interface: An interface name (e.g. "en1" or "lo0"), the corresponding IP address or nil.
     ///   - host: The destination the client should send UDP packets to.
     ///   - port: The port of the host the client should send packets to.
-    public init(interface: String? = nil, host: String, port: UInt16) {
+    public init(id: UUID = .init(),
+                interface: String? = nil,
+                host: String,
+                port: UInt16) {
+        self.id = id
         self.interface = interface
         self.host = host
         self.port = port
@@ -66,6 +75,9 @@ import Foundation
     /// NSSecureCoding is implemented to allow for this instance to be passed to a XPC Service.
     public static var supportsSecureCoding: Bool = true
 
+    /// A key that defines the `id` of an `OSCUdpClientConfiguration`.
+    private static let idKey = "idKey"
+    
     /// A key that defines the `interface` of an `OSCUdpClient`.
     private static let interfaceKey = "interfaceKey"
 
@@ -77,18 +89,21 @@ import Foundation
 
     /// A configuration object that defines the behavior of a UDP client from data in a given unarchiver.
     public required init?(coder: NSCoder) {
-        guard let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as String?,
-              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as Data?
+        guard let interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as? String,
+              let host = coder.decodeObject(of: NSString.self, forKey: Self.hostKey) as? String,
+              let portData = coder.decodeObject(of: NSData.self, forKey: Self.portKey) as? Data
         else {
             return nil
         }
-        self.interface = coder.decodeObject(of: NSString.self, forKey: Self.interfaceKey) as String?
+        self.id = coder.decodeObject(of: NSUUID.self, forKey: Self.idKey) as? UUID ?? .init()
+        self.interface = interface
         self.host = host
         self.port = portData.withUnsafeBytes { $0.load(as: UInt16.self) }.bigEndian
     }
 
     /// Encodes this instance using a given archiver.
     public func encode(with coder: NSCoder) {
+        coder.encode(id, forKey: Self.idKey)
         coder.encode(interface, forKey: Self.interfaceKey)
         coder.encode(host, forKey: Self.hostKey)
         // Port could potentially be encoded as an NSInteger...

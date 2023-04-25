@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket", from: "7.6.4"),
         .package(name: "NetUtils" ,url: "https://github.com/svdo/swift-netutils", from: "4.1.0"),
-        .package(url: "https://github.com/sammysmallman/CoreOSC.git", from: "1.1.0")
+        .package(url: "https://github.com/sammysmallman/CoreOSC.git", from: "1.2.1")
     ],
     targets: [
         .target(
