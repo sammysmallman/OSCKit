@@ -30,7 +30,7 @@ import Foundation
 public enum OSCKit {
     
     /// This package's semantic version number, mirrored also in git history as a `git tag`.
-    static let version: String = "3.1.0"
+    static let version: String = "3.2.0"
     
     /// The license agreement this repository is licensed under.
     static let license: String = {
