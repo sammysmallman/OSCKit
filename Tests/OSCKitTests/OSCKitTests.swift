@@ -29,7 +29,7 @@ import XCTest
 class OSCKitTests: XCTestCase {
 
     func testVersion() {
-        XCTAssertEqual(OSCKit.version, "3.1.0")
+        XCTAssertEqual(OSCKit.version, "3.2.0")
     }
     
     func testLicense() {
