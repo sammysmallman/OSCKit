@@ -70,7 +70,9 @@ public class OSCUdpServer: NSObject {
     public private(set) var joinedMulticastGroups: Set<String> = []
 
     /// A boolean value that indicates whether the server is listening for OSC packets.
-    public private(set) var isListening: Bool = false
+    public var isListening: Bool {
+        !socket.isClosed()
+    }
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the server will listen on all interfaces.
@@ -178,7 +180,6 @@ public class OSCUdpServer: NSObject {
             try socket.bind(toPort: port)
         }
         try socket.beginReceiving()
-        isListening = true
         for multicastGroup in multicastGroups {
             do {
                 try join(multicastGroup: multicastGroup)
@@ -288,14 +289,10 @@ extension OSCUdpServer: GCDAsyncUdpSocketDelegate {
                              didReadData: data,
                              with: error)
         }
-        if !isListening {
-            isListening = true
-        }
     }
 
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket,
                                   withError error: Error?) {
-        isListening = false
         if joinedMulticastGroups.isEmpty == false {
             joinedMulticastGroups.removeAll()
         }

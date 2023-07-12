@@ -38,6 +38,10 @@ public protocol OSCUdpServerDelegate: AnyObject {
                 port: UInt16)
 
     /// Tells the delegate that the servers socket closed.
+    /// - Note: This method does not categorically indicate that the server is no longer listening and its socket is currently closed.
+    /// If a port or interface change occurs with `startListening()` called immediately after, this method will be called
+    /// but the server will again be listening with an open socket.
+    /// It is advised to use `server.isListening` to accurately detemine the current state of the server.
     /// - Parameters:
     ///   - server: The server that sent the message.
     ///   - error: An optional error if the servers socket closed with one.

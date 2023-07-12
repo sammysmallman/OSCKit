@@ -54,7 +54,9 @@ public class OSCUdpPeer: NSObject {
     private let socket: GCDAsyncUdpSocket
 
     /// A boolean value that indicates whether the peer is running i.e. whether it can receive and send OSCPackets.
-    public private(set) var isRunning: Bool = false
+    public var isRunning: Bool {
+        !socket.isClosed()
+    }
 
     /// The interface may be a name (e.g. "en1" or "lo0") or the corresponding IP address (e.g. "192.168.1.15").
     /// If the value of this is nil the peer will receive on all interfaces and the interface will be infered by the host
@@ -181,7 +183,6 @@ public class OSCUdpPeer: NSObject {
         guard isRunning == false else { return }
         try socket.bind(toPort: port, interface: interface)
         try socket.beginReceiving()
-        isRunning = true
     }
 
     /// Stop the peer running.
@@ -278,14 +279,10 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
                            didReadData: data,
                            with: error)
         }
-        if !isRunning {
-            isRunning = true
-        }
     }
 
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket,
                                   withError error: Error?) {
-        isRunning = false
         delegate?.peer(self, socketDidCloseWithError: error)
     }
     

@@ -71,6 +71,10 @@ public protocol OSCUdpPeerDelegate: AnyObject {
               error: Error?)
 
     /// Tells the delegate that the peers socket closed.
+    /// - Note: This method does not categorically indicate that the peer is no longer running and its socket is currently closed.
+    /// If a port or interface change occurs with `startRunning()` called immediately after, this method will be called
+    /// but the peer will again be running with an open socket.
+    /// It is advised to use `peer.isRunning` to accurately detemine the current state of the peer.
     /// - Parameters:
     ///   - peer: The peer that sent the message.
     ///   - error: An optional error if the peers socket closed with one.
