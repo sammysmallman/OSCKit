@@ -14,9 +14,9 @@
         "package": "CoreOSC",
         "repositoryURL": "https://github.com/sammysmallman/CoreOSC.git",
         "state": {
-          "branch": null,
-          "revision": "c8f1080e31dae7bcfbd1660018f2ed8b11228e1a",
-          "version": "1.1.0"
+          "branch": "develop",
+          "revision": "651f667ebfd051996e25d13c8871a1af66be46f2",
+          "version": null
         }
       },
       {

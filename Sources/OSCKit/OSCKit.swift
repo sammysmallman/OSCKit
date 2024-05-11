@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 22/07/2021.
-//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2021 Sam Smallman. https://github.com/SammySmallman
 //
 //  This file is part of OSCKit
 //
@@ -30,7 +30,7 @@ import Foundation
 public enum OSCKit {
     
     /// This package's semantic version number, mirrored also in git history as a `git tag`.
-    static let version: String = "3.2.0"
+    static let version: String = "4.0.0"
     
     /// The license agreement this repository is licensed under.
     static let license: String = {
@@ -50,7 +50,7 @@ public enum OSCKit {
 
     /// Returns an `OSCMessage` response corresponding to the given packet.
     static func message(for packet: OSCPacket) -> OSCMessage? {
-        guard let message = packet as? OSCMessage else { return nil }
+        guard case let .message(message) = packet else { return nil }
         switch message.addressPattern.fullPath {
         case OSCKit.oscKitVersion:
             return try! OSCMessage(with: OSCKit.oscKitVersion, arguments: [OSCKit.version])
@@ -67,7 +67,7 @@ public enum OSCKit {
     
     /// Returns a boolean value indicating whether a packet should be listened to.
     static func listening(for packet: OSCPacket) -> Bool {
-        guard let message = packet as? OSCMessage else { return true }
+        guard case let .message(message) = packet else { return true }
         switch message.addressPattern.fullPath {
         case OSCKit.oscKitVersion,  OSCKit.oscKitLicense,
              OSCKit.coreOscVersion, OSCKit.coreOscLicense:
