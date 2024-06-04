@@ -29,19 +29,13 @@ import XCTest
 class OSCKitTests: XCTestCase {
 
     func testVersion() {
-        XCTAssertEqual(OSCKit.version, "3.2.0")
+        XCTAssertEqual(OSCKit.version, "4.0.0")
     }
     
     func testLicense() {
         let license = OSCKit.license
-        XCTAssertTrue(license.hasPrefix("Copyright © 2022 Sam Smallman. https://github.com/SammySmallman"))
+        XCTAssertTrue(license.hasPrefix("Copyright © 2021 Sam Smallman. https://github.com/SammySmallman"))
         XCTAssertTrue(license.hasSuffix("<https://www.gnu.org/licenses/why-not-lgpl.html>.\n"))
     }
-    
-    func testCoreOSCLicense() {
-        let license = CoreOSC.license
-        XCTAssertTrue(license.hasPrefix("Copyright © 2022 Sam Smallman. https://github.com/SammySmallman"))
-        XCTAssertTrue(license.hasSuffix("<https://www.gnu.org/licenses/why-not-lgpl.html>.\n"))
-    }
-    
+
 }

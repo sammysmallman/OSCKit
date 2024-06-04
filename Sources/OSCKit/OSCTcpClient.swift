@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 09/07/2021.
-//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2021 Sam Smallman. https://github.com/SammySmallman
 //
 //  This file is part of OSCKit
 //
@@ -270,7 +270,7 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
                     if let message = OSCKit.message(for: packet) {
-                        try? strongSelf.send(message)
+                        try? strongSelf.send(.message(message))
                     } else {
                         delegate.client(strongSelf, didReceivePacket: packet)
                     }
@@ -282,7 +282,7 @@ extension OSCTcpClient: GCDAsyncSocketDelegate {
                     guard let strongSelf = self,
                           let delegate = strongSelf.delegate else { return }
                     if let message = OSCKit.message(for: packet) {
-                        try? strongSelf.send(message)
+                        try? strongSelf.send(.message(message))
                     } else {
                         delegate.client(strongSelf, didReceivePacket: packet)
                     }

@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 08/09/2021.
-//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2021 Sam Smallman. https://github.com/SammySmallman
 //
 //  This file is part of OSCKit
 //
@@ -266,7 +266,7 @@ extension OSCUdpPeer: GCDAsyncUdpSocketDelegate {
         do {
             let packet = try OSCParser.packet(from: data)
             if let message = OSCKit.message(for: packet) {
-                try? send(message)
+                try? send(.message(message))
             } else {
                 delegate?.peer(self,
                                didReceivePacket: packet,

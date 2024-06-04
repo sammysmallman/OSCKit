@@ -3,7 +3,7 @@
 //  OSCKit
 //
 //  Created by Sam Smallman on 07/07/2021.
-//  Copyright © 2022 Sam Smallman. https://github.com/SammySmallman
+//  Copyright © 2021 Sam Smallman. https://github.com/SammySmallman
 //
 //  This file is part of OSCKit
 //
@@ -276,7 +276,7 @@ extension OSCUdpServer: GCDAsyncUdpSocketDelegate {
             let port = GCDAsyncUdpSocket.port(fromAddress: address)
             let packet = try OSCParser.packet(from: data)
             if let message = OSCKit.message(for: packet) {
-                try? OSCUdpClient(host: host, port: port).send(message)
+                try? OSCUdpClient(host: host, port: port).send(.message(message))
             } else {
                 delegate?.server(self,
                                   didReceivePacket: packet,
