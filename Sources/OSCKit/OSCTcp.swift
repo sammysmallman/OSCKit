@@ -166,6 +166,7 @@ internal struct OSCTcp {
                         state.data.removeAll()
                         dispatchHandler(packet)
                     } catch {
+                        state.data.removeAll()
                         throw error
                     }
                 case slipEsc:

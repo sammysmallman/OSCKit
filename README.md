@@ -121,7 +121,7 @@ do {
     
 Send the packet
 ```swift
-client.send(message)
+client.send(.message(message))
 ```
 </details>
 <details closed>
@@ -259,7 +259,7 @@ do {
     
 Send the packet
 ```swift
-client.send(message)
+client.send(.message(message))
 ```
 </details>
 <details closed>
@@ -391,7 +391,7 @@ do {
     
 Send the packet
 ```swift
-peer.send(message)
+peer.send(.message(message))
 ```
 </details>
 
